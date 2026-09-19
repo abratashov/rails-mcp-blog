@@ -66,3 +66,4 @@ group :test do
 end
 
 gem "mcp", "~> 1.5"
+gem "json", "2.21.2" # Fixf for error: ArgumentError (wrong number of arguments (given 2, expected 1))

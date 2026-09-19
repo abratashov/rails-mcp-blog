@@ -11,6 +11,13 @@ bin/dev
 
 # Goto
 http://localhost:3000/
+
+npx @modelcontextprotocol/inspector@latest
+# Add Server:
+#   Server ID: rails-mcp-blog
+#   Transport: streamable-http
+#   URL: http://localhost:3000/mcp
+
 ```
 
 ## Workshop Steps
@@ -18,9 +25,15 @@ http://localhost:3000/
 Manual steps to reproduce this repository:
 
 ```sh
+# 1. Init Rails app & MCP templates generator
 mise use ruby@4.0
 git clone https://github.com/pstrzalk/mcp-on-rails.git
 cd mcp-on-rails
 rails new rails-mcp-blog
 rails new rails-mcp-blog -m mcp
+
+# 2. Add posts resource
+rails g scaffold post title:string body:text
+rails db:migrate
+# Go to http://localhost:3000/posts
 ```

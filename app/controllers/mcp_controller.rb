@@ -2,11 +2,7 @@
 
 class McpController < ActionController::API
   def handle
-    if params[:method] == "notifications/initialized"
-      head :accepted
-    else
-      render(json: mcp_server.handle_json(request.body.read))
-    end
+    render(json: mcp_server.handle_json(request.body.read))
   end
 
   private
