@@ -36,4 +36,11 @@ rails new rails-mcp-blog -m mcp
 rails g scaffold post title:string body:text
 rails db:migrate
 # Go to http://localhost:3000/posts
+rails mcp:tools
+
+# 3. Add comments resource
+rails g scaffold comment post:references content:text
+rails db:migrate
+# Go to http://localhost:3000/comments
+rails mcp:tools
 ```
