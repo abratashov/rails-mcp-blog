@@ -1,24 +1,26 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Example Rails setup with MCP by workshop ["Paweł Strzałkowski - Make Rails AI-Ready by Design with the Model Context Protocol"](https://www.youtube.com/watch?v=IYAWJQ_HSQ)
 
-Things you may want to cover:
+## Setup
 
-* Ruby version
+```sh
+# Tab 1
+bundle
+bin/dev
 
-* System dependencies
+# Goto
+http://localhost:3000/
+```
 
-* Configuration
+## Workshop Steps
 
-* Database creation
+Manual steps to reproduce this repository:
 
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```sh
+mise use ruby@4.0
+git clone https://github.com/pstrzalk/mcp-on-rails.git
+cd mcp-on-rails
+rails new rails-mcp-blog
+rails new rails-mcp-blog -m mcp
+```
