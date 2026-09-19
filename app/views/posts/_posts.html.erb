@@ -1,0 +1,19 @@
+<div id="posts">
+  <% Post.all.each_with_index do |post, index| %>
+    <div id="<%= dom_id post %>">
+      <h2><%= post.title %></h2>
+      <p><%= post.body %></p>
+
+      <% if post.comments.any? %>
+        <div>
+          <h3>Comments</h3>
+          <% post.comments.each do |comment| %>
+            <p>
+              <strong><%= comment.updated_at %></strong> - <%= comment.content %>
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

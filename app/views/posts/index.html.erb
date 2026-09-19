@@ -4,13 +4,7 @@
 
 <h1>Posts</h1>
 
-<div id="posts">
-  <% @posts.each do |post| %>
-    <%= render post %>
-    <p>
-      <%= link_to "Show this post", post %>
-    </p>
-  <% end %>
-</div>
+<%= render "posts" %>
+<%= turbo_stream_from "posts" %>
 
 <%= link_to "New post", new_post_path %>
