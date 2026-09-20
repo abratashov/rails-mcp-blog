@@ -18,6 +18,20 @@ npx @modelcontextprotocol/inspector@latest
 #   Transport: streamable-http
 #   URL: http://localhost:3000/mcp
 
+# Run ngrok to translate your http://localhost:3000 to the Web
+# https://dashboard.ngrok.com/get-started/share-localhost
+ngrok http 3000
+
+# Add our MCP to Claude https://claude.ai
+# Settings => Connectors => Add
+#   Name: rails-mcp-blog
+#   URL: https://78d6-194-44-131-88.ngrok-free.app/mcp
+
+# Now we can tell to Claude to perform some actions:
+#   Create three short story posts about animals for my Rails MCP blog.
+#   And now, could you add two short comments for two posts?
+#   Remove the last post.
+#   Make the latest comment more intense.
 ```
 
 ## Workshop Steps
