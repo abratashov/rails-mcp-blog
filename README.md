@@ -32,6 +32,8 @@ ngrok http 3000
 #   And now, could you add two short comments for two posts?
 #   Remove the last post.
 #   Make the latest comment more intense.
+#   Write a post comparing the current weather in Lviv to the weather in Kyiv, use my own weather tool!
+
 ```
 
 ## Workshop Steps
@@ -57,4 +59,7 @@ rails g scaffold comment post:references content:text
 rails db:migrate
 # Go to http://localhost:3000/comments
 rails mcp:tools
+
+# 4. Add custom tool
+rails g mcp_tool CheckWeatherTool location:string
 ```
