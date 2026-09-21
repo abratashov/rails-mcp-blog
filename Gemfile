@@ -66,6 +66,6 @@ group :test do
 end
 
 gem "mcp", "~> 1.5"
-gem "json", "2.21.2" # Fixf for error: ArgumentError (wrong number of arguments (given 2, expected 1))
+gem "json", "3.0.2" # Fixf for error: ArgumentError (wrong number of arguments (given 2, expected 1))
 gem "devise", "~> 5.0"
 gem "doorkeeper", "~> 5.9"
