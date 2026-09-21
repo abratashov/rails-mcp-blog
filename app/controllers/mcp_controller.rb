@@ -26,26 +26,14 @@ class McpController < ActionController::API
   end
 
   def mcp_server
-    server = MCP::Server.new(
+    MCP::Server.new(
       name: "rails_mcp_server",
       version: "1.0.0",
       tools: MCP::Tool.descendants,
       prompts: MCP::Prompt.descendants,
+      resources: MCP::Resource.descendants,
       resource_templates: MCP::ResourceTemplate.descendants,
       server_context: { token: doorkeeper_token, user_id: doorkeeper_token.resource_owner_id }
     )
-
-    server.resources_list_handler do |_request, server_context: nil|
-      Post.order(created_at: :desc).limit(10).map do |post|
-        MCP::Resource.new(
-          uri: "posts://#{post.id}",
-          name: "post-#{post.id}",
-          description: post.title,
-          mime_type: "text/markdown"
-        )
-      end
-    end
-
-    server
   end
 end
