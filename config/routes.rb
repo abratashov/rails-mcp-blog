@@ -1,6 +1,20 @@
 Rails.application.routes.draw do
+  devise_for :users
+  use_doorkeeper
+
   resources :comments
   resources :posts
+
+  # RFC 7591: Dynamic Client Registration Protocol
+  post "/oauth/register", to: "oauth_client_registration#create", as: :oauth_register
+
+  # RFC 9728: Protected Resource Metadata (MCP server as protected resource)
+  get "/.well-known/oauth-protected-resource",       to: "oauth_authorization_server_metadata#protected_resource"
+  get "/.well-known/oauth-protected-resource/mcp",   to: "oauth_authorization_server_metadata#protected_resource"
+
+  # RFC 8414: Authorization Server Metadata (OAuth server endpoints)
+  get "/.well-known/oauth-authorization-server",     to: "oauth_authorization_server_metadata#authorization_server"
+  get "/.well-known/oauth-authorization-server/mcp", to: "oauth_authorization_server_metadata#authorization_server"
 
   # Model Context Protocol
   post "/mcp", to: "mcp#handle"
