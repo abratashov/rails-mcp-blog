@@ -66,4 +66,8 @@ rails mcp:tools
 
 # 4. Add custom tool
 rails g mcp_tool CheckWeatherTool location:string
+
+# 5. Add OAuth
+# Re-run and choose item with Doorkeeper & Devise
+rails new rails-mcp-blog -m mcp
 ```
