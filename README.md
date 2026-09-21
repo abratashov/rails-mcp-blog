@@ -9,7 +9,7 @@ Example Rails setup with MCP by workshop ["Paweł Strzałkowski - Make Rails AI-
 bundle
 bin/dev
 
-# Goto
+# Go to
 http://localhost:3000/
 
 npx @modelcontextprotocol/inspector@latest
@@ -33,7 +33,6 @@ ngrok http 3000
 #   Remove the last post.
 #   Make the latest comment more intense.
 #   Write a post comparing the current weather in Lviv to the weather in Kyiv, use my own weather tool!
-
 ```
 
 ## Workshop Steps
@@ -70,4 +69,8 @@ rails g mcp_tool CheckWeatherTool location:string
 # 5. Add OAuth
 # Re-run and choose item with Doorkeeper & Devise
 rails new rails-mcp-blog -m mcp
+
+# 6. Add Posts as MCP Resources
+# Claude doesn't support Resources but we can explore ones with:
+npx @modelcontextprotocol/inspector@latest
 ```

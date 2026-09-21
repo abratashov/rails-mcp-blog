@@ -14,4 +14,8 @@ Rails.application.config.to_prepare do
   Dir[Rails.root.join("app/prompts/**/*.rb")].each do |file|
     require_dependency file
   end
+
+  Dir[Rails.root.join("app/resources/**/*.rb")].each do |file|
+    require_dependency file
+  end
 end
