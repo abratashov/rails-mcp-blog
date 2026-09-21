@@ -12,7 +12,7 @@ module Comments
     input_schema(
       properties: {
         post_id: { type: "integer" },
-        content: { type: "string" },
+        content: { type: "string" }
       },
       required: [ "post_id" ]
     )

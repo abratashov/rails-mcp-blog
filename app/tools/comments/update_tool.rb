@@ -13,7 +13,7 @@ module Comments
       properties: {
         id: { type: "integer" },
         post_id: { type: "integer" },
-        content: { type: "string" },
+        content: { type: "string" }
       },
       required: [ "id" ]
     )

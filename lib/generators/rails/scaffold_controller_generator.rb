@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'rails/generators'
-require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
+require "rails/generators"
+require "rails/generators/rails/scaffold_controller/scaffold_controller_generator"
 
 module Rails
   module Generators

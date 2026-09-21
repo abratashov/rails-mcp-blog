@@ -12,7 +12,7 @@ module Posts
     input_schema(
       properties: {
         title: { type: "string" },
-        body: { type: "string" },
+        body: { type: "string" }
       }
     )
 

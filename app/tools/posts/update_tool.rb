@@ -13,7 +13,7 @@ module Posts
       properties: {
         id: { type: "integer" },
         title: { type: "string" },
-        body: { type: "string" },
+        body: { type: "string" }
       },
       required: [ "id" ]
     )

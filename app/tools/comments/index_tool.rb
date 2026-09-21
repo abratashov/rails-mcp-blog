@@ -12,13 +12,13 @@ module Comments
     input_schema(
       properties: {
         count: { type: "integer" },
-        post_id: { type: "integer" },
+        post_id: { type: "integer" }
       }
     )
 
     def self.call(count: 10, post_id: nil, server_context:)
       comments = Comment.all
-      comments = comments.where(post_id: post_id) if post_id.present? 
+      comments = comments.where(post_id: post_id) if post_id.present?
       comments = comments.last(count)
 
       response = comments.map(&:to_mcp_response).join("\n")

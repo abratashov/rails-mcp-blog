@@ -25,7 +25,7 @@ module Rails
         case choice.downcase[0]
         when "n"
           say "Skipping MCP tool generation", :yellow
-          return
+          nil
         when "a"
           TOOLS.each_key { |tool| create_tool_file(tool) }
         when "s"
