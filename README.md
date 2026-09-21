@@ -47,6 +47,10 @@ git clone https://github.com/pstrzalk/mcp-on-rails.git
 cd mcp-on-rails
 rails new rails-mcp-blog
 rails new rails-mcp-blog -m mcp
+# New Application
+#   rails new app_name -m mcp-on-rails/mcp
+# Existing Application
+#   rails app:template LOCATION=../mcp-on-rails/mcp
 
 # 2. Add posts resource
 rails g scaffold post title:string body:text
