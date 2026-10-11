@@ -65,7 +65,7 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem "mcp", "~> 1.5"
+gem "mcp", "~> 1.7"
 gem "json", "2.21.2" # Fixf for error: ArgumentError (wrong number of arguments (given 2, expected 1))
 gem "devise", "~> 5.0"
 gem "doorkeeper", "~> 5.9"
