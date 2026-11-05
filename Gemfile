@@ -73,6 +73,10 @@ gem "doorkeeper", "~> 5.9"
 gem "dotenv-rails"
 gem "tty-markdown", "~> 0.7.2"
 gem "webrick"
+gem "activeadmin"
+gem "dartsass-rails"
+gem "pdf-reader"
+gem "rubyzip", "~> 3.0"
 
 gem "simplecov", "~> 1.3", group: :test
 

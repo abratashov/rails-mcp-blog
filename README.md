@@ -13,6 +13,7 @@ cp .default.env.development .env.development
 mise install
 bundle
 rails db:prepare
+rails db:seed
 
 # Tab 1
 bin/dev
@@ -49,6 +50,9 @@ ngrok http 3000
 rails mcp:prompt_runner[essay_workshop]
 # Or sign in to the Rails app and open the prompt list:
 http://localhost:3000/prompts
+
+# Upload PDF, DOCX, and TXT document:
+http://localhost:3000/admin/documents
 ```
 
 ## Tests
