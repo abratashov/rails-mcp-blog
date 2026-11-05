@@ -73,3 +73,7 @@ gem "doorkeeper", "~> 5.9"
 gem "dotenv-rails"
 gem "tty-markdown", "~> 0.7.2"
 gem "webrick"
+
+gem "simplecov", "~> 1.3", group: :test
+
+gem "webmock", "~> 3.34", group: :test

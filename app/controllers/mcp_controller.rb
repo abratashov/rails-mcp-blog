@@ -7,11 +7,10 @@ class McpController < ActionController::API
   # before_action :validate_token_audience!
 
   def handle
-    # if params[:method] == "notifications/initialized"
-    #   head(:accepted) and return
-    # end
+    mcp_response = mcp_server.handle_json(request.body.read)
+    return head(:accepted) if mcp_response.nil?
 
-    render(json: mcp_server.handle_json(request.body.read))
+    render(json: mcp_response)
   end
 
   private

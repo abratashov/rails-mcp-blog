@@ -49,6 +49,16 @@ rails mcp:prompt_runner[essay_workshop]
 http://localhost:3000/prompts
 ```
 
+## Tests
+
+Tests use WebMock to block unregistered outbound requests and mock external weather
+and OAuth API responses. SimpleCov enforces a 90% minimum line coverage and writes
+the HTML report to `coverage/`.
+
+```sh
+bin/rails test
+```
+
 ## Workshop Steps
 
 Manual steps to reproduce this repository:

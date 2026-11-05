@@ -1,6 +1,14 @@
 ENV["RAILS_ENV"] ||= "test"
+require "simplecov"
+SimpleCov.start "rails" do
+  minimum_coverage 90
+end
+
 require_relative "../config/environment"
 require "rails/test_help"
+require "webmock/minitest"
+
+WebMock.disable_net_connect!(allow_localhost: true)
 
 module ActiveSupport
   class TestCase

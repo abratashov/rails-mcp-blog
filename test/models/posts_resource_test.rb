@@ -17,6 +17,14 @@ class PostsResourceTest < ActiveSupport::TestCase
     assert_includes contents.text, "Test comment"
   end
 
+  test "renders an explicit empty comments section for posts without comments" do
+    @post.comments.destroy_all
+
+    contents = Posts::Resource.contents(id: @post.id)
+
+    assert_includes contents.text, "_No comments._"
+  end
+
   test "reads a post through the MCP server resource template" do
     server = MCP::Server.new(
       name: "rails_mcp_server",
