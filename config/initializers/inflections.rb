@@ -11,6 +11,11 @@
 # end
 
 # These inflection rules are supported but not enabled by default:
-# ActiveSupport::Inflector.inflections(:en) do |inflect|
-#   inflect.acronym "RESTful"
-# end
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.acronym "AI"
+  inflect.acronym "AI::CLIAuthenticator"
+end
+
+Rails.autoloaders.main.inflector.inflect(
+  "cli_authenticator" => "CLIAuthenticator"
+)

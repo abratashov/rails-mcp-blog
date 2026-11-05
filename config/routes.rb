@@ -4,6 +4,12 @@ Rails.application.routes.draw do
 
   resources :comments
   resources :posts
+  get "/prompts", to: "prompt_runners#index", as: :prompts
+  get "/prompts/:prompt_name", to: "prompt_runners#show", as: :prompt_runner
+  post "/prompts/:prompt_name", to: "prompt_runners#create"
+  delete "/prompts/:prompt_name", to: "prompt_runners#destroy"
+  resource :essay_workshop, only: %i[ show create destroy ],
+    controller: "prompt_runners", defaults: { prompt_name: "essay_workshop" }
 
   # RFC 7591: Dynamic Client Registration Protocol
   post "/oauth/register", to: "oauth_client_registration#create", as: :oauth_register

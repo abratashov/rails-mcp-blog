@@ -67,5 +67,9 @@ end
 
 gem "mcp", "~> 1.5"
 gem "json", "2.21.2" # Fixf for error: ArgumentError (wrong number of arguments (given 2, expected 1))
+gem "ruby-openai"
 gem "devise", "~> 5.0"
 gem "doorkeeper", "~> 5.9"
+gem "dotenv-rails"
+gem "tty-markdown", "~> 0.7.2"
+gem "webrick"

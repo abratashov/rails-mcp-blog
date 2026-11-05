@@ -1,0 +1,22 @@
+<% content_for :title, "Prompts" %>
+
+<main class="prompt-runner">
+  <header class="prompt-runner__header">
+    <div>
+      <p class="prompt-runner__eyebrow">AI tools</p>
+      <h1>Prompts</h1>
+      <p>Select a prompt to start an interactive session.</p>
+    </div>
+  </header>
+
+  <section class="prompt-runner__conversation" aria-label="Available prompts">
+    <% @prompts.each do |prompt| %>
+      <article class="prompt-runner__message">
+        <h2><%= link_to prompt.fetch(:title), prompt_runner_path(prompt.fetch(:name)) %></h2>
+        <% if prompt[:description].present? %>
+          <p><%= prompt[:description] %></p>
+        <% end %>
+      </article>
+    <% end %>
+  </section>
+</main>

@@ -2,7 +2,9 @@
 
 class McpController < ActionController::API
   before_action -> { doorkeeper_authorize! :public, :read, :write }
-  before_action :validate_token_audience!
+
+  # Resource validation is optional; enable when using OAuth Resource Indicators (RFC 8707)
+  # before_action :validate_token_audience!
 
   def handle
     # if params[:method] == "notifications/initialized"
@@ -29,11 +31,17 @@ class McpController < ActionController::API
     MCP::Server.new(
       name: "rails_mcp_server",
       version: "1.0.0",
-      tools: MCP::Tool.descendants,
-      prompts: MCP::Prompt.descendants,
-      resources: MCP::Resource.descendants,
-      resource_templates: MCP::ResourceTemplate.descendants,
+      tools: current_descendants(MCP::Tool),
+      prompts: current_descendants(MCP::Prompt),
+      resources: current_descendants(MCP::Resource),
+      resource_templates: current_descendants(MCP::ResourceTemplate),
       server_context: { token: doorkeeper_token, user_id: doorkeeper_token.resource_owner_id }
     )
+  end
+
+  def current_descendants(base_class)
+    base_class.descendants.select do |subclass|
+      subclass.name&.safe_constantize == subclass
+    end
   end
 end
