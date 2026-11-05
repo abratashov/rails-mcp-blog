@@ -4,13 +4,15 @@ Example Rails setup with MCP by workshop ["Paweł Strzałkowski - Make Rails AI-
 
 ## Setup
 
-```sh
-# Setup
-bundle
-rails db:setup
 
-# Fill appropriate API_TOKEN for LLM providers
+```sh
+# Set appropriate API_TOKEN for LLM providers
 cp .default.env.development .env.development
+
+# Installation
+mise install
+bundle
+rails db:prepare
 
 # Tab 1
 bin/dev
