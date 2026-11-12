@@ -1,4 +1,7 @@
 ActiveAdmin.setup do |config|
+  config.register_javascript "jquery3.js"
+  config.register_javascript "select2.js"
+
   # == Site Title
   #
   # Set the title that is displayed on the main layout

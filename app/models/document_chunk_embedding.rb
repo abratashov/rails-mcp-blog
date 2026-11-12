@@ -5,6 +5,8 @@ class DocumentChunkEmbedding < ApplicationRecord
 
   belongs_to :document_chunk
 
+  has_neighbors :embedding
+
   validates :provider, :model, :configuration_version, :input_checksum, presence: true
   validates :dimensions, numericality: { only_integer: true, greater_than: 0 }
   validates :status, inclusion: { in: STATUSES }

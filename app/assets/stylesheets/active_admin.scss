@@ -10,6 +10,58 @@
 // Active Admin's got SASS!
 @import "active_admin/mixins";
 @import "active_admin/base";
+@import "select2";
+
+.semantic-search-form {
+  .inputs {
+    display: grid;
+    gap: 12px;
+  }
+
+  .input {
+    min-width: 0;
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="search"],
+    input[type="text"],
+    input[type="number"],
+    .select2-container {
+      box-sizing: border-box;
+      width: 100% !important;
+      max-width: 100%;
+    }
+
+    input[type="search"] {
+      border: $border-width solid #c9d0d6;
+      @include rounded;
+      font-size: 0.95em;
+      @include sans-family;
+      outline: none;
+      padding: 8px $text-input-horizontal-padding 7px;
+
+      &:focus {
+        border: $border-width solid #99a2aa;
+        @include shadow(0, 0, 4px, #99a2aa);
+      }
+    }
+  }
+
+  .semantic-search-advanced .inputs {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .semantic-search-advanced summary {
+    cursor: pointer;
+  }
+
+  .semantic-search-advanced {
+    margin-top: 16px;
+  }
+}
 
 // Overriding any non-variable Sass must be done after the fact.
 // For example, to change the default status-tag color:

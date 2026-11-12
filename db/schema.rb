@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_05_191600) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -65,6 +65,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_05_191600) do
     t.datetime "updated_at", null: false
     t.index ["document_chunk_id", "provider", "model", "dimensions", "configuration_version"], name: "index_document_chunk_embeddings_on_identity", unique: true
     t.index ["document_chunk_id"], name: "index_document_chunk_embeddings_on_document_chunk_id"
+    t.index ["provider", "model", "dimensions", "configuration_version", "status"], name: "index_embeddings_on_retrieval_identity"
     t.index ["status"], name: "index_document_chunk_embeddings_on_status"
     t.check_constraint "dimensions >= 1 AND dimensions <= 16000", name: "document_chunk_embeddings_dimensions_valid"
     t.check_constraint "embedding IS NULL OR vector_dims(embedding) = dimensions", name: "document_chunk_embeddings_vector_dimensions_match"
@@ -83,6 +84,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_05_191600) do
     t.datetime "updated_at", null: false
     t.index ["document_id", "position"], name: "index_document_chunks_on_document_id_and_position", unique: true
     t.index ["document_id"], name: "index_document_chunks_on_document_id"
+    t.index ["metadata"], name: "index_document_chunks_on_metadata", using: :gin
   end
 
   create_table "documents", force: :cascade do |t|
