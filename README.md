@@ -55,6 +55,18 @@ http://localhost:3000/prompts
 http://localhost:3000/admin/documents
 ```
 
+Document chunks are embedded asynchronously after extraction. Configure an
+OpenAI-compatible embeddings API independently from `LLM_PROVIDER` with
+`EMBEDDING_API_BASE_URL`, `EMBEDDING_API_KEY`, `EMBEDDING_MODEL`, and
+`EMBEDDING_DIMENSIONS` (`EMBEDDING_SEND_DIMENSIONS=false` omits the optional
+dimensions API parameter for providers that do not support it). The default
+model is OpenAI's multilingual `text-embedding-3-small`; configure an endpoint
+and model compatible with the same API if using another provider. Bump
+`EMBEDDING_CONFIGURATION_VERSION` when changing provider-side configuration
+that may affect vector compatibility. PostgreSQL must have the pgvector
+extension installed before running migrations. Embeddings with different
+providers, models, dimensions, or configuration versions are stored separately.
+
 ## Tests
 
 Tests use WebMock to block unregistered outbound requests and mock external weather

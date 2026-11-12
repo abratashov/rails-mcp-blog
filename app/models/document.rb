@@ -13,6 +13,7 @@ class Document < ApplicationRecord
   belongs_to :user
   has_one_attached :file, dependent: :purge_later
   has_many :document_chunks, -> { order(:position) }, dependent: :destroy
+  has_many :document_chunk_embeddings, through: :document_chunks
 
   before_validation :copy_file_metadata, if: -> { attachment_changes.key?("file") }
   after_create_commit :enqueue_processing
@@ -31,7 +32,7 @@ class Document < ApplicationRecord
   end
 
   def self.ransackable_associations(_auth_object = nil)
-    %w[document_chunks user]
+    %w[document_chunk_embeddings document_chunks user]
   end
 
   private

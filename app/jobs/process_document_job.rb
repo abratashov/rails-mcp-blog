@@ -3,5 +3,6 @@ class ProcessDocumentJob < ApplicationJob
 
   def perform(document)
     Documents::Processor.new(document).call
+    GenerateDocumentEmbeddingsJob.perform_later(document.id)
   end
 end

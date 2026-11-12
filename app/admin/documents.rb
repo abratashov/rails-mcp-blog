@@ -1,4 +1,6 @@
 ActiveAdmin.register Document do
+  menu parent: "Documents", priority: 1
+
   permit_params :user_id, :file
 
   actions :index, :show, :new, :create, :destroy
@@ -44,6 +46,26 @@ ActiveAdmin.register Document do
         column(:content) { |chunk| simple_format(chunk.content) }
       end
     end
+
+    panel "Embedding progress" do
+      configuration = Embeddings::Configuration.new
+      embeddings = resource.document_chunk_embeddings.where(configuration.identity)
+      completed_count = embeddings.where(status: "completed").count
+      status_by_chunk = embeddings.pluck(:document_chunk_id, :status, :error_message).to_h do |chunk_id, status, error_message|
+        [ chunk_id, { status: status, error_message: error_message } ]
+      end
+      para "#{completed_count} of #{resource.document_chunks.count} chunks have embeddings for #{configuration.provider} / #{configuration.model} (#{configuration.dimensions} dimensions, configuration #{configuration.configuration_version})."
+
+      table_for resource.document_chunks do
+        column :position
+        column("Status") do |chunk|
+          status_by_chunk.dig(chunk.id, :status) || "not generated"
+        end
+        column("Error") do |chunk|
+          status_by_chunk.dig(chunk.id, :error_message)
+        end
+      end
+    end
   end
 
   form do |form|
@@ -70,9 +92,25 @@ ActiveAdmin.register Document do
     button_to "Retry processing", retry_processing_admin_document_path(resource), method: :post
   end
 
+  action_item :retry_embeddings, only: :show, if: proc {
+    configuration = Embeddings::Configuration.new
+    resource.document_chunk_embeddings.where(configuration.identity.merge(status: "failed")).exists?
+  } do
+    button_to "Retry failed embeddings", retry_embeddings_admin_document_path(resource), method: :post
+  end
+
   member_action :retry_processing, method: :post do
     resource.update!(status: "pending", processing_error: nil)
     ProcessDocumentJob.perform_later(resource)
     redirect_to resource_path, notice: "Document processing has been queued."
+  end
+
+  member_action :retry_embeddings, method: :post do
+    configuration = Embeddings::Configuration.new
+    chunk_ids = resource.document_chunk_embeddings
+      .where(configuration.identity.merge(status: "failed"))
+      .pluck(:document_chunk_id)
+    GenerateDocumentEmbeddingsJob.perform_later(resource.id, chunk_ids: chunk_ids)
+    redirect_to resource_path, notice: "Failed document embeddings have been queued."
   end
 end

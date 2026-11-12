@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_05_142201) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_05_191600) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "vector"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -48,6 +49,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_05_142201) do
     t.integer "post_id", null: false
     t.datetime "updated_at", null: false
     t.index ["post_id"], name: "index_comments_on_post_id"
+  end
+
+  create_table "document_chunk_embeddings", force: :cascade do |t|
+    t.string "configuration_version", limit: 64, null: false
+    t.datetime "created_at", null: false
+    t.integer "dimensions", null: false
+    t.bigint "document_chunk_id", null: false
+    t.vector "embedding"
+    t.text "error_message"
+    t.string "input_checksum", null: false
+    t.string "model", null: false
+    t.string "provider", limit: 64, null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_chunk_id", "provider", "model", "dimensions", "configuration_version"], name: "index_document_chunk_embeddings_on_identity", unique: true
+    t.index ["document_chunk_id"], name: "index_document_chunk_embeddings_on_document_chunk_id"
+    t.index ["status"], name: "index_document_chunk_embeddings_on_status"
+    t.check_constraint "dimensions >= 1 AND dimensions <= 16000", name: "document_chunk_embeddings_dimensions_valid"
+    t.check_constraint "embedding IS NULL OR vector_dims(embedding) = dimensions", name: "document_chunk_embeddings_vector_dimensions_match"
+    t.check_constraint "status::text = 'completed'::text AND embedding IS NOT NULL OR status::text <> 'completed'::text AND embedding IS NULL", name: "document_chunk_embeddings_status_matches_embedding"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'processing'::character varying, 'completed'::character varying, 'failed'::character varying]::text[])", name: "document_chunk_embeddings_valid_status"
   end
 
   create_table "document_chunks", force: :cascade do |t|
@@ -146,6 +168,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_05_142201) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "comments", "posts"
+  add_foreign_key "document_chunk_embeddings", "document_chunks", on_delete: :cascade
   add_foreign_key "document_chunks", "documents", on_delete: :cascade
   add_foreign_key "documents", "users"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"

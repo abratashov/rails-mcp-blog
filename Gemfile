@@ -77,6 +77,7 @@ gem "activeadmin"
 gem "dartsass-rails"
 gem "pdf-reader"
 gem "rubyzip", "~> 3.0"
+gem "neighbor"
 
 gem "simplecov", "~> 1.3", group: :test
 

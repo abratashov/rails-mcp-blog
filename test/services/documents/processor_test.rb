@@ -1,6 +1,8 @@
 require "test_helper"
 
 class Documents::ProcessorTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   test "persists chunks atomically and can safely process a document again" do
     document = create_document(("This is an English paragraph. Це український абзац. " * 60).strip)
 
@@ -24,6 +26,37 @@ class Documents::ProcessorTest < ActiveSupport::TestCase
     assert_equal "failed", document.reload.status
     assert_match "no extractable text", document.processing_error
     assert_empty document.document_chunks
+  end
+
+  test "processes uploaded documents into chunks and asynchronously embeds those chunks" do
+    embedding_key = ENV["EMBEDDING_API_KEY"]
+    ENV["EMBEDDING_API_KEY"] = "test-key"
+    request = stub_request(:post, "https://api.openai.com/v1/embeddings")
+      .to_return do |http_request|
+        input = JSON.parse(http_request.body).fetch("input")
+        {
+          status: 200,
+          headers: { "Content-Type" => "application/json" },
+          body: {
+            data: input.each_index.map do |index|
+              { index: index, embedding: Array.new(1_536, 0.1) }
+            end
+          }.to_json
+        }
+      end
+    document = nil
+
+    perform_enqueued_jobs do
+      document = create_document("This is an English paragraph. Це український абзац.")
+    end
+
+    assert_equal "completed", document.reload.status
+    assert_operator document.document_chunks.count, :>, 0
+    assert_equal document.document_chunks.count,
+      document.document_chunk_embeddings.where(status: "completed").count
+    assert_requested request
+  ensure
+    ENV["EMBEDDING_API_KEY"] = embedding_key
   end
 
   private
