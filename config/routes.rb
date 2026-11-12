@@ -5,6 +5,10 @@ Rails.application.routes.draw do
 
   resources :comments
   resources :posts
+  get "/chat", to: "chats#index", as: :chat
+  post "/chat", to: "chats#create"
+  get "/chat/:id", to: "chats#show", as: :chat_conversation
+  post "/chat/:id/messages", to: "chats#create_message", as: :chat_messages
   get "/prompts", to: "prompt_runners#index", as: :prompts
   get "/prompts/:prompt_name", to: "prompt_runners#show", as: :prompt_runner
   post "/prompts/:prompt_name", to: "prompt_runners#create"

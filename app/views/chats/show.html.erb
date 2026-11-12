@@ -1,0 +1,104 @@
+<% content_for :title, @conversation.title.presence || "Document chat" %>
+
+<main class="rag-chat">
+  <header class="rag-chat__header">
+    <div>
+      <p class="rag-chat__eyebrow"><%= link_to "← All conversations", chat_path %></p>
+      <h1><%= @conversation.title.presence || "Document conversation" %></h1>
+      <p class="rag-chat__description">Ask a follow-up question about your uploaded documents.</p>
+    </div>
+    <span class="rag-chat__badge">Grounded in your documents</span>
+  </header>
+
+  <% if @error.present? %>
+    <p class="rag-chat__error" role="alert"><%= @error %></p>
+  <% end %>
+
+  <div class="rag-chat__panel">
+    <section class="rag-chat__messages" aria-label="Conversation messages" aria-live="polite">
+      <% @conversation.messages_for_display.each do |message| %>
+        <% role = message.role.to_s %>
+        <% metadata = message.metadata.is_a?(Hash) ? message.metadata : {} %>
+        <% citations = metadata["citations"] || metadata[:citations] || [] %>
+        <% chunks = metadata["retrieved_chunks"] || metadata[:retrieved_chunks] || [] %>
+        <% error = metadata["error"] || metadata[:error] %>
+        <article class="rag-chat__message rag-chat__message--<%= role == "user" ? "user" : "assistant" %>">
+          <h2><%= role == "user" ? "You" : "Document assistant" %></h2>
+          <% if error.present? %>
+            <p class="rag-chat__error" role="alert">Generation error: <%= error %></p>
+          <% end %>
+          <div class="rag-chat__message-content">
+            <% if role == "assistant" %>
+              <%= prompt_markdown(message.content.to_s) %>
+            <% else %>
+              <%= simple_format(message.content.to_s) %>
+            <% end %>
+          </div>
+
+          <% if role == "assistant" && citations.any? %>
+            <section class="rag-chat__sources" aria-label="Sources">
+              <h3>Sources</h3>
+              <ol>
+                <% citations.each do |citation| %>
+                  <% label = citation["label"] || citation[:label] %>
+                  <% filename = citation["filename"] || citation[:filename] %>
+                  <% document_id = citation["document_id"] || citation[:document_id] %>
+                  <% page_start = citation["page_start"] || citation[:page_start] %>
+                  <% page_end = citation["page_end"] || citation[:page_end] %>
+                  <% pages = [page_start, page_end].compact.uniq %>
+                  <% source_text = citation["content"] || citation[:content] %>
+                  <li>
+                    <strong>[<%= label %>]</strong>
+                    <% if document_id.present? %>
+                      <%= link_to filename, admin_document_path(document_id) %>
+                    <% else %>
+                      <%= filename %>
+                    <% end %>
+                    <% if pages.any? %>
+                      <span class="rag-chat__page">Page <%= pages.join("-") %></span>
+                    <% end %>
+                    <% if source_text.present? %>
+                      <blockquote><%= source_text %></blockquote>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ol>
+            </section>
+          <% end %>
+
+          <% if role == "assistant" && chunks.any? %>
+            <details class="rag-chat__retrieval">
+              <summary>Retrieved document chunks</summary>
+              <ol>
+                <% chunks.each do |chunk| %>
+                  <% filename = chunk["filename"] || chunk[:filename] %>
+                  <% score = chunk["score"] || chunk[:score] %>
+                  <% content = chunk["content"] || chunk[:content] %>
+                  <li><strong><%= filename %></strong> (score: <%= score %>)<br><%= content %></li>
+                <% end %>
+              </ol>
+            </details>
+          <% end %>
+        </article>
+      <% end %>
+    </section>
+
+    <div class="rag-chat__composer">
+      <%= form_with url: chat_messages_path(@conversation), method: :post, class: "rag-chat__form" do |form| %>
+        <div class="rag-chat__scope">
+          <%= label_tag :document_id, "Search in" %>
+          <%= select_tag :document_id,
+            options_for_select([["All my documents", ""]] + @documents.map { |document| ["#{document.filename} (#{document.status})", document.id] }, @selected_document_id),
+            id: "document_id" %>
+        </div>
+        <%= form.label :message, "Your question" %>
+        <%= form.text_area :message, rows: 3, maxlength: 10_000, required: true,
+          placeholder: "Ask a follow-up question..." %>
+        <div class="rag-chat__composer-footer">
+          <span>Answers use your selected document context.</span>
+          <%= form.submit "Send question", class: "button", data: { turbo_submits_with: "Searching documents..." } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</main>

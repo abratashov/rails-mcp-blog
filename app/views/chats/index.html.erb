@@ -1,0 +1,47 @@
+<% content_for :title, "Document chat" %>
+
+<main class="rag-chat">
+  <header class="rag-chat__header">
+    <div>
+      <p class="rag-chat__eyebrow">Retrieval-augmented chat</p>
+      <h1>Ask your documents</h1>
+      <p>Answers are based on your uploaded documents and include source references.</p>
+    </div>
+  </header>
+
+  <% if @error.present? %>
+    <p class="rag-chat__error" role="alert"><%= @error %></p>
+  <% end %>
+
+  <section class="rag-chat__start">
+    <h2>Start a conversation</h2>
+    <% if @documents.empty? %>
+      <p>You have not uploaded any documents yet. <%= link_to "Upload a document", admin_documents_path %> to get started.</p>
+    <% else %>
+      <%= form_with url: chat_path, method: :post, class: "rag-chat__form" do |form| %>
+        <%= label_tag :document_id, "Search scope" %>
+        <%= select_tag :document_id,
+          options_for_select([["All my documents", ""]] + @documents.map { |document| ["#{document.filename} (#{document.status})", document.id] }),
+          id: "document_id" %>
+        <%= form.label :message, "Your question" %>
+        <%= form.text_area :message, rows: 4, maxlength: 10_000, required: true,
+          placeholder: "Ask a question about your uploaded documents..." %>
+        <%= form.submit "Start chat", class: "button", data: { turbo_submits_with: "Searching documents..." } %>
+      <% end %>
+    <% end %>
+  </section>
+
+  <% if @conversations.any? %>
+    <section class="rag-chat__history" aria-label="Previous conversations">
+      <h2>Your conversations</h2>
+      <ul>
+        <% @conversations.each do |conversation| %>
+          <li>
+            <%= link_to conversation.title.presence || "Conversation ##{conversation.id}", chat_conversation_path(conversation) %>
+            <span><%= l(conversation.updated_at, format: :short) %></span>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+</main>

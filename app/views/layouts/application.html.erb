@@ -24,6 +24,16 @@
   </head>
 
   <body>
+    <% if user_signed_in? %>
+      <nav class="application-nav" aria-label="Main navigation">
+        <%= link_to "Posts", posts_path %>
+        <%= link_to "New post", new_post_path %>
+        <%= link_to "Run a prompt", prompts_path %>
+        <%= link_to "Document chat", chat_path %>
+        <%= link_to "Uploaded documents", admin_documents_path %>
+        <%= link_to "Admin", admin_dashboard_path %>
+      </nav>
+    <% end %>
     <%= yield %>
   </body>
 </html>

@@ -1,12 +1,17 @@
-<p style="color: green"><%= notice %></p>
-
 <% content_for :title, "Posts" %>
 
-<h1>Posts</h1>
+<main class="posts-page">
+  <% if notice.present? %>
+    <p class="posts-page__notice"><%= notice %></p>
+  <% end %>
 
-<%= render "posts" %>
-<%= turbo_stream_from "posts" %>
+  <header class="posts-page__header">
+    <h1>Posts</h1>
+    <%= link_to "New post", new_post_path, class: "button" %>
+  </header>
 
-<%= link_to "Admin", admin_dashboard_path %>
-<%= link_to "New post", new_post_path %>
-<%= link_to "Run a prompt", prompts_path %>
+  <section class="posts-page__list" aria-label="Posts">
+    <%= render "posts" %>
+    <%= turbo_stream_from "posts" %>
+  </section>
+</main>

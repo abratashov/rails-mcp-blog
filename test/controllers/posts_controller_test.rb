@@ -11,11 +11,25 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get posts_url
     assert_response :success
+    assert_select "main.posts-page"
+    assert_select ".posts-page__header h1", "Posts"
+    assert_select "#posts a[href='#{post_path(@post)}']", text: @post.title
+    assert_select "nav[aria-label='Main navigation']" do
+      assert_select "a[href='#{posts_path}']", text: "Posts"
+      assert_select "a[href='#{new_post_path}']", text: "New post"
+      assert_select "a[href='#{prompts_path}']", text: "Run a prompt"
+      assert_select "a[href='#{admin_dashboard_path}']", text: "Admin"
+    end
+    assert_select "body > a", count: 0
   end
 
   test "should get new" do
     get new_post_url
     assert_response :success
+    assert_select "main.posts-page"
+    assert_select ".posts-page__form-panel"
+    assert_select "input[name='post[title]']"
+    assert_select "textarea[name='post[body]']"
   end
 
   test "should create post" do
@@ -29,6 +43,10 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
   test "should show post" do
     get post_url(@post)
     assert_response :success
+    assert_select "main.posts-page"
+    assert_select ".posts-page__detail"
+    assert_select ".posts-page__actions a[href='#{edit_post_path(@post)}']", text: "Edit post"
+    assert_select ".posts-page__actions form[action='#{post_path(@post)}'] button[aria-label='Delete post'] svg[aria-hidden='true']"
   end
 
   test "should get edit" do

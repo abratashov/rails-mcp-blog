@@ -9,6 +9,7 @@ class User < ApplicationRecord
            foreign_key: :resource_owner_id,
            dependent: :delete_all
   has_many :documents, dependent: :destroy
+  has_many :rag_conversations, dependent: :destroy
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable

@@ -1,7 +1,7 @@
 <div id="posts">
   <% Post.all.each_with_index do |post, index| %>
     <div id="<%= dom_id post %>">
-      <h2><%= post.title %></h2>
+      <h2><%= link_to post.title, post_path(post) %></h2>
       <p><%= post.body %></p>
 
       <% if post.comments.any? %>

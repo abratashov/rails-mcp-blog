@@ -1,6 +1,6 @@
 <%= form_with(model: post) do |form| %>
   <% if post.errors.any? %>
-    <div style="color: red">
+    <div class="posts-page__errors" role="alert">
       <h2><%= pluralize(post.errors.count, "error") %> prohibited this post from being saved:</h2>
 
       <ul>
@@ -11,17 +11,17 @@
     </div>
   <% end %>
 
-  <div>
-    <%= form.label :title, style: "display: block" %>
-    <%= form.text_field :title %>
+  <div class="posts-page__field">
+    <%= form.label :title %>
+    <%= form.text_field :title, required: true, autofocus: true %>
   </div>
 
-  <div>
-    <%= form.label :body, style: "display: block" %>
-    <%= form.textarea :body %>
+  <div class="posts-page__field">
+    <%= form.label :body %>
+    <%= form.textarea :body, rows: 10 %>
   </div>
 
-  <div>
-    <%= form.submit %>
+  <div class="posts-page__form-actions">
+    <%= form.submit "Publish post", class: "button" %>
   </div>
 <% end %>

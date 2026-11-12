@@ -1,11 +1,17 @@
 <% content_for :title, "New post" %>
 
-<h1>New post</h1>
+<main class="posts-page">
+  <header class="posts-page__header">
+    <div>
+      <p class="posts-page__eyebrow"><%= link_to "← All posts", posts_path %></p>
+      <h1>New post</h1>
+      <p class="posts-page__description">Write a new post for the blog.</p>
+    </div>
+  </header>
 
-<%= render "form", post: @post %>
+  <section class="posts-page__form-panel">
+    <%= render "form", post: @post %>
+  </section>
 
-<br>
-
-<div>
-  <%= link_to "Back to posts", posts_path %>
-</div>
+  <%= link_to "Cancel", posts_path, class: "posts-page__cancel" %>
+</main>

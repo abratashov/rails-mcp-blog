@@ -56,6 +56,9 @@ http://localhost:3000/admin/documents
 
 # For Semantic Search with `pgvector` check and update appropriate EMBEDDING settings in the env file.
 http://localhost:3000/admin/semantic_search
+
+# Ask questions about your uploaded documents:
+http://localhost:3000/chat
 ```
 
 ## Tests

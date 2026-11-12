@@ -1,10 +1,29 @@
-<p style="color: green"><%= notice %></p>
+<% content_for :title, @post.title.presence || "Post" %>
 
-<%= render @post %>
+<main class="posts-page">
+  <% if notice.present? %>
+    <p class="posts-page__notice"><%= notice %></p>
+  <% end %>
 
-<div>
-  <%= link_to "Edit this post", edit_post_path(@post) %> |
-  <%= link_to "Back to posts", posts_path %>
+  <header class="posts-page__header">
+    <div>
+      <p class="posts-page__eyebrow"><%= link_to "← All posts", posts_path %></p>
+      <h1><%= @post.title %></h1>
+    </div>
+  </header>
 
-  <%= button_to "Destroy this post", @post, method: :delete %>
-</div>
+  <article class="posts-page__detail">
+    <div class="posts-page__body"><%= simple_format(@post.body) %></div>
+  </article>
+
+  <nav class="posts-page__actions" aria-label="Post actions">
+    <%= link_to "Edit post", edit_post_path(@post), class: "button" %>
+    <%= button_to @post, method: :delete, class: "button button--danger",
+      aria: { label: "Delete post" }, title: "Delete post",
+      form: { data: { turbo_confirm: "Are you sure you want to delete this post?" } } do %>
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+        <path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 5v6m4-6v6" />
+      </svg>
+    <% end %>
+  </nav>
+</main>

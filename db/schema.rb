@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -155,6 +155,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_130000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "rag_conversations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "messages", default: [], null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_rag_conversations_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
@@ -177,4 +187,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_130000) do
   add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
+  add_foreign_key "rag_conversations", "users"
 end
