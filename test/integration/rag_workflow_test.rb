@@ -36,6 +36,22 @@ class RagWorkflowTest < ActionDispatch::IntegrationTest
         }
       end
 
+    @classification_request = stub_request(:post, "http://localhost:8000/v1/chat/completions")
+      .with do |request|
+        JSON.parse(request.body).fetch("messages").any? do |message|
+          message["content"].include?("Classify the user's question by retrieval intent")
+        end
+      end
+      .to_return(
+        status: 200,
+        headers: { "Content-Type" => "application/json" },
+        body: {
+          choices: [
+            { message: { role: "assistant", content: '{"type":"specific","confidence":0.99}' } }
+          ]
+        }.to_json
+      )
+
     @answer_request = stub_request(:post, "http://localhost:8000/v1/chat/completions")
       .with do |request|
         body = JSON.parse(request.body)
@@ -89,7 +105,10 @@ class RagWorkflowTest < ActionDispatch::IntegrationTest
     assert_equal "assistant", conversation.messages.last["role"]
     assert_includes conversation.messages.last["content"], "The red fox sleeps in a hollow beneath the pine trees."
     assert_includes conversation.messages.last["content"], "Sources: [1] forest-guide.txt"
+    assert_equal "specific", conversation.messages.last.dig("metadata", "question_type")
+    assert_equal "semantic_top_k", conversation.messages.last.dig("metadata", "retrieval_strategy")
     assert_requested @embedding_request, times: 2
+    assert_requested @classification_request, times: 1
     assert_requested @answer_request, times: 1
   end
 end

@@ -14,11 +14,14 @@ class RagAssistantTest < ActiveSupport::TestCase
     assert_equal "Follow the checklist before publishing.", result.sources.first[:content]
     assert_includes result.answer, "Sources:"
     assert_includes result.answer, "[1] guide.txt"
+    assert_equal "specific", result.metadata[:question_type]
+    assert_equal "semantic_top_k", result.metadata[:retrieval_strategy]
   end
 
   test "returns an explicit no-evidence response when retrieval finds nothing" do
     assistant = Rag::Assistant.new(
       retriever: FakeRetriever.new([]),
+      query_classifier: FakeQueryClassifier.new("specific"),
       answer_generator: FakeAnswerGenerator.new("unused")
     )
 
@@ -32,6 +35,7 @@ class RagAssistantTest < ActiveSupport::TestCase
   test "returns retrieval failures as explicit errors" do
     assistant = Rag::Assistant.new(
       retriever: FailingRetriever.new("query embedding unavailable"),
+      query_classifier: FakeQueryClassifier.new("specific"),
       answer_generator: FakeAnswerGenerator.new("unused")
     )
 
@@ -49,6 +53,7 @@ class RagAssistantTest < ActiveSupport::TestCase
           42, "guide.txt", nil, nil, 1, "Follow the checklist.", 0.9, 0.1, {}
         )
       ]),
+      query_classifier: FakeQueryClassifier.new("specific"),
       answer_generator: FailingAnswerGenerator.new("chat provider unavailable")
     )
 
@@ -73,6 +78,7 @@ class RagAssistantTest < ActiveSupport::TestCase
 
   def build_assistant
     Rag::Assistant.new(
+      query_classifier: FakeQueryClassifier.new("specific"),
       retriever: FakeRetriever.new([
         Struct.new(:document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata).new(
           42,
@@ -109,6 +115,16 @@ class RagAssistantTest < ActiveSupport::TestCase
 
     def call(prompt:, conversation: [], model: nil)
       { text: @answer, provider: :fake, model: model || "fake-model" }
+    end
+  end
+
+  class FakeQueryClassifier
+    def initialize(question_type)
+      @question_type = question_type
+    end
+
+    def call(_question)
+      Rag::QueryClassifier::Classification.new(question_type: @question_type, confidence: 0.99)
     end
   end
 

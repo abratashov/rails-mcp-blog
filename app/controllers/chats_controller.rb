@@ -89,6 +89,7 @@ class ChatsController < ApplicationController
       document_id: document&.id,
       conversation: history
     )
+    result_metadata = result.metadata || {}
 
     @conversation.update!(metadata: @conversation.metadata_hash.merge("document_id" => document&.id))
     @conversation.append_message(
@@ -106,6 +107,10 @@ class ChatsController < ApplicationController
         "provider" => result.provider,
         "model" => result.model,
         "grounded" => result.grounded,
+        "question_type" => result_metadata[:question_type],
+        "classification_confidence" => result_metadata[:classification_confidence],
+        "classification_error" => result_metadata[:classification_error],
+        "retrieval_strategy" => result_metadata[:retrieval_strategy],
         "error" => result.error
       }
     )

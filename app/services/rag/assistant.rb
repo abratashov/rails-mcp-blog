@@ -2,12 +2,16 @@ module Rag
   class Assistant
     def initialize(
       retriever: nil,
+      query_classifier: nil,
+      retrieval_router: nil,
       context_assembler: nil,
       prompt_builder: nil,
       answer_generator: nil,
       default_context_limit: 4_000
     )
       @retriever = retriever || Retriever.new
+      @query_classifier = query_classifier || QueryClassifier.new
+      @retrieval_router = retrieval_router || RetrievalRouter.new(semantic_search: @retriever)
       @context_assembler = context_assembler || ContextAssembler.new(max_tokens: default_context_limit)
       @prompt_builder = prompt_builder || PromptBuilder.new
       @answer_generator = answer_generator || AnswerGenerator.new
@@ -21,15 +25,21 @@ module Rag
       retrieval_results = []
       context = []
       prompt = ""
+      classification = nil
+      retrieval_strategy = nil
 
       begin
-        retrieval_results = @retriever.call(
+        classification = @query_classifier.call(question)
+        routing_result = @retrieval_router.call(
           question,
+          question_type: classification.question_type,
           user: user,
           document_id: document_id,
           metadata: metadata,
           top_k: top_k
         )
+        retrieval_results = routing_result.chunks
+        retrieval_strategy = routing_result.strategy
 
         context = @context_assembler.call(retrieval_results, max_tokens: max_context_tokens || @default_context_limit)
         prompt = @prompt_builder.call(question: question, context: context, conversation: conversation)
@@ -43,7 +53,7 @@ module Rag
             context: context,
             prompt: prompt,
             grounded: false,
-            metadata: { document_id: document_id, metadata: metadata },
+            metadata: result_metadata(document_id, metadata, classification, retrieval_strategy),
             provider: @answer_generator.instance_variable_get(:@provider),
             model: @answer_generator.instance_variable_get(:@model),
             error: nil
@@ -63,7 +73,7 @@ module Rag
           context: context,
           prompt: prompt,
           grounded: true,
-          metadata: { document_id: document_id, metadata: metadata },
+          metadata: result_metadata(document_id, metadata, classification, retrieval_strategy),
           provider: response[:provider],
           model: response[:model],
           error: nil
@@ -77,7 +87,7 @@ module Rag
           context: context || [],
           prompt: prompt || "",
           grounded: false,
-          metadata: { document_id: document_id, metadata: metadata },
+          metadata: result_metadata(document_id, metadata, classification, retrieval_strategy),
           provider: @answer_generator.instance_variable_get(:@provider),
           model: @answer_generator.instance_variable_get(:@model),
           error: e.message
@@ -86,6 +96,17 @@ module Rag
     end
 
     private
+
+    def result_metadata(document_id, metadata, classification, retrieval_strategy)
+      {
+        document_id: document_id,
+        metadata: metadata,
+        question_type: classification&.question_type || "specific",
+        classification_confidence: classification&.confidence,
+        classification_error: classification&.error,
+        retrieval_strategy: retrieval_strategy || "semantic_top_k"
+      }
+    end
 
     def decorate_with_citations(answer, citations)
       return answer if citations.empty?
