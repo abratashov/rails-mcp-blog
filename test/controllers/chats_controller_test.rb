@@ -33,6 +33,7 @@ class ChatsControllerTest < ActionDispatch::IntegrationTest
     get chat_conversation_path(conversation)
     assert_response :success
     assert_select "h1", text: conversation.title
+    assert_select ".rag-chat__messages[data-controller='scroll-to-bottom']"
     assert_select "h3", text: "Sources"
     assert_select "li", text: /report.txt/
   end

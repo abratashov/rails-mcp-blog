@@ -1,60 +1,70 @@
 # README
 
-Example Rails setup with MCP by workshop ["Paweł Strzałkowski - Make Rails AI-Ready by Design with the Model Context Protocol"](https://www.youtube.com/watch?v=IYAWJQ_HSQ)
+Example Rails application with MCP, based on the workshop ["Paweł Strzałkowski - Make Rails AI-Ready by Design with the Model Context Protocol"](https://www.youtube.com/watch?v=IYAWJQ_HSQ).
 
 ## Setup
 
-
 ```sh
-# Set appropriate API_TOKEN for LLM providers
+# Set the appropriate API_TOKEN for LLM providers
 cp .default.env.development .env.development
 
-# Installation
+# Install dependencies and prepare the database
 mise install
-bundle
+bundle install
 rails db:prepare
 rails db:seed
 
-# Tab 1
+# Tab 1: Start the Rails application
 bin/dev
 
-http://localhost:3000/
-test@test.org / test@test.org
+# Open http://localhost:3000/
+# Credentials: test@test.org / test@test.org
+```
 
-# Tab 2
+## MCP Tools & Prompts
+
+```sh
+# Tab 2: Start MCP Inspector
 npx @modelcontextprotocol/inspector@latest
+
 # Add Server:
 #   Server ID: rails-mcp-blog
 #   Transport: streamable-http
 #   URL: http://localhost:3000/mcp
 
-# Tab 3
-# Run ngrok to translate your http://localhost:3000 to the Web
+# Tab 3: Expose the local Rails application to the Web using `ngrok`
 # https://dashboard.ngrok.com/get-started/share-localhost
 ngrok http 3000
 
-# Add our MCP to Claude https://claude.ai
+# Add the MCP server to Claude (https://claude.ai)
 # Settings => Connectors => Add
 #   Name: rails-mcp-blog
-#   URL: https://78d6-194-44-131-88.ngrok-free.app/mcp
+#   URL: https://<your-ngrok-subdomain>.ngrok-free.app/mcp
 
-# Now we can tell to Claude to perform some actions:
+# Now we can ask Claude to perform some actions:
 #   Create three short story posts about animals for my Rails MCP blog.
 #   And now, could you add two short comments for two posts?
 #   Remove the last post.
 #   Make the latest comment more intense.
 #   Write a post comparing the current weather in Lviv to the weather in Kyiv, use my own weather tool!
 
-# Tab 4
-# To run an interactive prompt in the CLI:
+# Tab 4: Run an interactive prompt in the CLI:
 rails mcp:prompt_runner[essay_workshop]
-# Or sign in to the Rails app and open the prompt list:
-http://localhost:3000/prompts
 
-# Upload PDF, DOCX, and TXT document:
+# Or sign in to the Rails application and open the prompt list:
+http://localhost:3000/prompts
+```
+
+### RAG Application
+
+Alongside the basic MCP functionality, this project contains a basic RAG application that allows us to upload documents and chat about their content.
+
+```sh
+# Upload a PDF, DOCX, or TXT document:
 http://localhost:3000/admin/documents
 
-# For Semantic Search with `pgvector` check and update appropriate EMBEDDING settings in the env file.
+# Explore semantic search powered by pgvector:
+# Make sure the `EMBEDDING_*` settings in the environment file are configured correctly.
 http://localhost:3000/admin/semantic_search
 
 # Ask questions about your uploaded documents:
@@ -63,54 +73,54 @@ http://localhost:3000/chat
 
 ## Tests
 
-Tests use WebMock to block unregistered outbound requests and mock external weather
-and OAuth API responses. SimpleCov enforces a 90% minimum line coverage and writes
-the HTML report to `coverage/`.
+Tests use WebMock to block unregistered outbound requests and mock external weather and OAuth API responses. SimpleCov enforces a 90% minimum line coverage and generates an HTML report in `coverage/`.
 
 ```sh
 bin/rails test
 ```
 
-## Workshop Steps
+## MCP Workshop Steps
 
-Manual steps to reproduce this repository:
+Manual steps to reproduce MCP part of this repository:
 
 ```sh
-# 1. Init Rails app & MCP templates generator
+# 1. Initialize a Rails application using the MCP template generator
 mise use ruby@4.0
 git clone https://github.com/pstrzalk/mcp-on-rails.git
 cd mcp-on-rails
-rails new rails-mcp-blog
-rails new rails-mcp-blog -m mcp
-# New Application
-#   rails new app_name -m mcp-on-rails/mcp
-# Existing Application
-#   rails app:template LOCATION=../mcp-on-rails/mcp
 
-# 2. Add posts resource
+# Generate a new Rails application using the MCP template
+rails new rails-mcp-blog -m mcp
+
+# Alternative: apply the template to an existing application
+# rails app:template LOCATION=../mcp-on-rails/mcp
+
+# 2. Add the Posts resource
 rails g scaffold post title:string body:text
 rails db:migrate
-# Go to http://localhost:3000/posts
+
+# Open http://localhost:3000/posts
 rails mcp:tools
 
-# 3. Add comments resource
+# 3. Add the Comments resource
 rails g scaffold comment post:references content:text
 rails db:migrate
-# Go to http://localhost:3000/comments
+
+# Open http://localhost:3000/comments
 rails mcp:tools
 
-# 4. Add custom tool
+# 4. Add a custom tool
 rails g mcp_tool CheckWeatherTool location:string
 
 # 5. Add OAuth
-# Re-run and choose item with Doorkeeper & Devise
+# Re-run the MCP template generator and select the Doorkeeper & Devise option
 rails new rails-mcp-blog -m mcp
 
 # 6. Add Posts as MCP Resources
-# Claude doesn't support Resources but we can explore ones with:
+# Claude doesn't support Resources, but you can explore them using:
 npx @modelcontextprotocol/inspector@latest
 
-# 7. Add Prompt
+# 7. Add a Prompt
 rails g mcp_prompt EssayWorkshop language:required
 
 # EssayWorkshop
@@ -134,6 +144,18 @@ rails g mcp_prompt EssayWorkshop language:required
 
 # Keep the exercise interactive: do not complete all steps at once.
 # After each stage, wait for the user's response before continuing.
+```
+
+### LLM Models
+
+```sh
+# OpenRouter usage
+# Get OPENROUTER_API_KEY from https://openrouter.ai/workspaces/default/keys
+# Add it to .env.development
+
+# OpenAI usage
+# Get OPENAI_API_KEY from https://platform.openai.com/api-keys
+# Add it to .env.development
 
 # Ollama usage
 cd ~/installs
@@ -142,27 +164,24 @@ ollama --version
 curl -I http://localhost:11434
 ollama pull qwen3:4b
 ollama run qwen3:4b
-# >> Give me an interesting topic for an essay
+
+# Example prompt:
+# Give me an interesting topic for an essay.
 
 # vLLM usage
 cd ~/installs
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt install cuda-toolkit-12-9
+
 vllm --version
-# or add to your terminal init in case of vllm not found:
+
+# Alternatively, add the following to your ~/.bashrc if vLLM is not found:
 # nano ~/.bashrc
 # export CUDA_HOME=/usr/local/cuda-12.9
 # export PATH="$CUDA_HOME/bin:$PATH"
 # export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"
 # export PATH="$HOME/installs/.venv/bin:$PATH"
+
 vllm serve Qwen/Qwen3-4B-AWQ --max-model-len 4096 --gpu-memory-utilization 0.90 --enable-auto-tool-choice --tool-call-parser hermes
-
-# OpenRouter usage
-# Get OPENROUTER_API_KEY from https://openrouter.ai/workspaces/default/keys
-# And put it into .env.development
-
-# OpenAI usage
-# Get OPENAI_API_KEY from https://platform.openai.com/api-keys
-# And put it into .env.development
 ```

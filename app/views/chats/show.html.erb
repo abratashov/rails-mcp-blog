@@ -15,7 +15,8 @@
   <% end %>
 
   <div class="rag-chat__panel">
-    <section class="rag-chat__messages" aria-label="Conversation messages" aria-live="polite">
+    <section class="rag-chat__messages" aria-label="Conversation messages" aria-live="polite"
+      data-controller="scroll-to-bottom">
       <% @conversation.messages_for_display.each do |message| %>
         <% role = message.role.to_s %>
         <% metadata = message.metadata.is_a?(Hash) ? message.metadata : {} %>
