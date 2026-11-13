@@ -111,6 +111,8 @@ class ChatsController < ApplicationController
         "classification_confidence" => result_metadata[:classification_confidence],
         "classification_error" => result_metadata[:classification_error],
         "retrieval_strategy" => result_metadata[:retrieval_strategy],
+        "retrieval_queries" => result_metadata[:retrieval_queries],
+        "selected_chunks" => result_metadata[:selected_chunks],
         "error" => result.error
       }
     )
@@ -120,20 +122,28 @@ class ChatsController < ApplicationController
   def serialize_chunks(chunks)
     Array(chunks).map do |chunk|
       {
-        "document_id" => chunk.document_id,
-        "filename" => chunk.filename,
-        "page_start" => chunk.page_start,
-        "page_end" => chunk.page_end,
-        "position" => chunk.position,
-        "score" => chunk.score,
-        "distance" => chunk.distance,
-        "provider" => chunk.provider,
-        "model" => chunk.model,
-        "dimensions" => chunk.dimensions,
-        "content" => chunk.content,
-        "metadata" => chunk.metadata
+        "document_id" => chunk_value(chunk, :document_id),
+        "filename" => chunk_value(chunk, :filename),
+        "page_start" => chunk_value(chunk, :page_start),
+        "page_end" => chunk_value(chunk, :page_end),
+        "position" => chunk_value(chunk, :position),
+        "score" => chunk_value(chunk, :score),
+        "distance" => chunk_value(chunk, :distance),
+        "provider" => chunk_value(chunk, :provider),
+        "model" => chunk_value(chunk, :model),
+        "dimensions" => chunk_value(chunk, :dimensions),
+        "content" => chunk_value(chunk, :content),
+        "metadata" => chunk_value(chunk, :metadata)
       }
     end
+  end
+
+  def chunk_value(chunk, key)
+    return chunk[key] if chunk.is_a?(Hash) && chunk.key?(key)
+    return chunk[key.to_s] if chunk.is_a?(Hash) && chunk.key?(key.to_s)
+    return chunk.public_send(key) if chunk.respond_to?(key)
+
+    nil
   end
 
   def serialize_context(context)

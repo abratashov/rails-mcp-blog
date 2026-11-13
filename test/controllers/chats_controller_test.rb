@@ -29,6 +29,8 @@ class ChatsControllerTest < ActionDispatch::IntegrationTest
     assert_equal %w[user assistant], conversation.messages.map { |message| message["role"] }
     assert_equal "What does the report say?", assistant.question
     assert_equal @user, assistant.options[:user]
+    assert_equal [ "lions", "tigers" ], conversation.messages.last.dig("metadata", "retrieval_queries").map { |query| query["subject"] }
+    assert_equal 1, conversation.messages.last.dig("metadata", "retrieved_chunks").first["position"]
 
     get chat_conversation_path(conversation)
     assert_response :success
@@ -133,9 +135,28 @@ class ChatsControllerTest < ActionDispatch::IntegrationTest
       Rag::Result.new(
         answer: "The report describes the main findings.",
         citations: [{ label: 1, filename: "report.txt", document_id: nil, content: "Main findings." }],
-        retrieved_chunks: [],
+        retrieved_chunks: [
+          {
+            document_id: 17,
+            filename: "report.txt",
+            page_start: 2,
+            page_end: 2,
+            position: 1,
+            score: 0.9,
+            distance: 0.1,
+            content: "Main findings.",
+            metadata: {}
+          }
+        ],
         context: [],
         grounded: true,
+        metadata: {
+          retrieval_queries: [
+            { subject: "lions", aspect: nil, text: "lions" },
+            { subject: "tigers", aspect: nil, text: "tigers" }
+          ],
+          selected_chunks: [{ document_id: 17, filename: "report.txt", position: 1, score: 0.9 }]
+        },
         provider: "test",
         model: "test-model",
         error: nil

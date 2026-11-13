@@ -44,6 +44,18 @@ class RagContextAssemblerTest < ActiveSupport::TestCase
     assert_equal "[Source 1] guide.txt one", context.first.context
   end
 
+  test "preserves round-robin comparative ordering instead of globally sorting scores" do
+    results = [
+      result(content: "Lion evidence.", position: 1, score: 0.8, metadata: { "comparative_subject" => "lions" }),
+      result(content: "Tiger evidence.", position: 2, score: 0.6, metadata: { "comparative_subject" => "tigers" }),
+      result(content: "More lion evidence.", position: 3, score: 0.99, metadata: { "comparative_subject" => "lions" })
+    ]
+
+    context = Rag::ContextAssembler.new.call(results)
+
+    assert_equal [ "Lion evidence.", "Tiger evidence.", "More lion evidence." ], context.map(&:content)
+  end
+
   private
 
   def result(content:, position:, score:, page_start: nil, page_end: nil, metadata: {})

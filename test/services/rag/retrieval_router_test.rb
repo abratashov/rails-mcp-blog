@@ -27,6 +27,21 @@ class RagRetrievalRouterTest < ActiveSupport::TestCase
     assert_equal "multi_chunk", result.strategy
   end
 
+  test "returns comparative retrieval queries alongside the chunks" do
+    query = { subject: "lions", aspect: nil, text: "lions" }
+    @comparative = FakeQueryStrategy.new(:comparative, [ query ])
+    @router = Rag::RetrievalRouter.new(
+      semantic_search: @semantic,
+      comparative_search: @comparative,
+      exhaustive_search: @exhaustive
+    )
+
+    result = @router.call("Compare lions and tigers", question_type: "comparative", user: @user)
+
+    assert_equal :comparative, result.chunks
+    assert_equal [ query ], result.retrieval_queries
+  end
+
   test "routes aggregation questions to exhaustive retrieval" do
     result = @router.call("How many species are mentioned?", question_type: "aggregation", user: @user)
 
@@ -60,6 +75,19 @@ class RagRetrievalRouterTest < ActiveSupport::TestCase
     def call(question, **options)
       @options = options.merge(question: question)
       @result
+    end
+
+  end
+
+  class FakeQueryStrategy < FakeStrategy
+    def initialize(result, queries)
+      super(result)
+      @queries = queries
+    end
+
+    def call(question, **options)
+      super
+      Struct.new(:chunks, :queries).new(@result, @queries)
     end
   end
 end

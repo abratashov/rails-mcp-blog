@@ -2,7 +2,7 @@ module Rag
   class Retriever
     def initialize(configuration: Retrieval::SearchConfiguration.new, search_service: nil)
       @configuration = configuration
-      @search_service = search_service || Retrieval::SemanticSearch.new(configuration: @configuration)
+      @search_service = search_service
     end
 
     def call(question, user:, document_id: nil, metadata: nil, top_k: nil)
@@ -10,8 +10,11 @@ module Rag
       raise ArgumentError, "A user is required to retrieve document evidence" if user.blank?
 
       scoped_configuration = top_k.present? ? build_configuration(top_k) : @configuration
-      search_service = @search_service if @search_service.respond_to?(:call)
-      search_service ||= Retrieval::SemanticSearch.new(configuration: scoped_configuration)
+      search_service = if @search_service
+        @search_service
+      else
+        Retrieval::SemanticSearch.new(configuration: scoped_configuration)
+      end
 
       search_service.call(question, user: user, document_id: document_id, metadata: metadata)
     end

@@ -1,6 +1,6 @@
 module Rag
   class RetrievalRouter
-    RoutingResult = Struct.new(:chunks, :strategy, keyword_init: true)
+    RoutingResult = Struct.new(:chunks, :strategy, :retrieval_queries, keyword_init: true)
 
     STRATEGY_NAMES = {
       "specific" => "semantic_top_k",
@@ -16,15 +16,21 @@ module Rag
 
     def call(question, question_type:, user:, document_id: nil, metadata: nil, top_k: nil)
       strategy = strategy_for(question_type)
-      chunks = strategy.call(
+      strategy_result = strategy.call(
         question,
         user: user,
         document_id: document_id,
         metadata: metadata,
         top_k: top_k
       )
+      chunks = strategy_result.respond_to?(:chunks) ? strategy_result.chunks : strategy_result
+      retrieval_queries = strategy_result.queries if strategy_result.respond_to?(:queries)
 
-      RoutingResult.new(chunks: chunks, strategy: STRATEGY_NAMES.fetch(normalize_type(question_type)))
+      RoutingResult.new(
+        chunks: chunks,
+        strategy: STRATEGY_NAMES.fetch(normalize_type(question_type)),
+        retrieval_queries: retrieval_queries
+      )
     end
 
     private

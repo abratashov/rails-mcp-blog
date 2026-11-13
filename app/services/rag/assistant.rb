@@ -27,6 +27,7 @@ module Rag
       prompt = ""
       classification = nil
       retrieval_strategy = nil
+      retrieval_queries = nil
 
       begin
         classification = @query_classifier.call(question)
@@ -40,9 +41,15 @@ module Rag
         )
         retrieval_results = routing_result.chunks
         retrieval_strategy = routing_result.strategy
+        retrieval_queries = routing_result.retrieval_queries
 
         context = @context_assembler.call(retrieval_results, max_tokens: max_context_tokens || @default_context_limit)
-        prompt = @prompt_builder.call(question: question, context: context, conversation: conversation)
+        prompt = @prompt_builder.call(
+          question: question,
+          context: context,
+          conversation: conversation,
+          question_type: classification.question_type
+        )
 
         if retrieval_results.empty?
           return Rag::Result.new(
@@ -53,7 +60,7 @@ module Rag
             context: context,
             prompt: prompt,
             grounded: false,
-            metadata: result_metadata(document_id, metadata, classification, retrieval_strategy),
+            metadata: result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries, retrieval_results),
             provider: @answer_generator.instance_variable_get(:@provider),
             model: @answer_generator.instance_variable_get(:@model),
             error: nil
@@ -73,7 +80,7 @@ module Rag
           context: context,
           prompt: prompt,
           grounded: true,
-          metadata: result_metadata(document_id, metadata, classification, retrieval_strategy),
+          metadata: result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries, retrieval_results),
           provider: response[:provider],
           model: response[:model],
           error: nil
@@ -87,7 +94,7 @@ module Rag
           context: context || [],
           prompt: prompt || "",
           grounded: false,
-          metadata: result_metadata(document_id, metadata, classification, retrieval_strategy),
+          metadata: result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries, retrieval_results),
           provider: @answer_generator.instance_variable_get(:@provider),
           model: @answer_generator.instance_variable_get(:@model),
           error: e.message
@@ -97,15 +104,36 @@ module Rag
 
     private
 
-    def result_metadata(document_id, metadata, classification, retrieval_strategy)
+    def result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries = nil, retrieval_results = [])
       {
         document_id: document_id,
         metadata: metadata,
         question_type: classification&.question_type || "specific",
         classification_confidence: classification&.confidence,
         classification_error: classification&.error,
-        retrieval_strategy: retrieval_strategy || "semantic_top_k"
+        retrieval_strategy: retrieval_strategy || "semantic_top_k",
+        retrieval_queries: retrieval_queries,
+        selected_chunks: selected_chunk_references(retrieval_results)
       }
+    end
+
+    def selected_chunk_references(results)
+      Array(results).map do |chunk|
+        {
+          document_id: chunk_value(chunk, :document_id),
+          filename: chunk_value(chunk, :filename),
+          position: chunk_value(chunk, :position),
+          score: chunk_value(chunk, :score)
+        }
+      end
+    end
+
+    def chunk_value(chunk, key)
+      return chunk[key] if chunk.is_a?(Hash) && chunk.key?(key)
+      return chunk[key.to_s] if chunk.is_a?(Hash) && chunk.key?(key.to_s)
+      return chunk.public_send(key) if chunk.respond_to?(key)
+
+      nil
     end
 
     def decorate_with_citations(answer, citations)

@@ -32,6 +32,43 @@ class RagAssistantTest < ActiveSupport::TestCase
     assert_includes result.answer, "couldn't find enough relevant information"
   end
 
+  test "records comparative queries and selected chunks and asks for an evidence-based comparison" do
+    chunks = [
+      Struct.new(:document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata).new(
+        42, "wildlife.txt", 1, 1, 1, "Lions live in groups.", 0.9, 0.1, { "comparative_subject" => "lions" }
+      ),
+      Struct.new(:document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata).new(
+        43, "wildlife.txt", 2, 2, 1, "Tigers are solitary.", 0.8, 0.2, { "comparative_subject" => "tigers" }
+      )
+    ]
+    queries = [
+      { subject: "lions", aspect: nil, text: "lions" },
+      { subject: "tigers", aspect: nil, text: "tigers" }
+    ]
+    router = Struct.new(:result) do
+      def call(*, **)
+        result
+      end
+    end.new(Rag::RetrievalRouter::RoutingResult.new(
+      chunks: chunks,
+      strategy: "multi_chunk",
+      retrieval_queries: queries
+    ))
+    answer_generator = CapturingAnswerGenerator.new("Lions live in groups [1], while tigers are solitary [2].")
+    assistant = Rag::Assistant.new(
+      query_classifier: FakeQueryClassifier.new("comparative"),
+      retrieval_router: router,
+      answer_generator: answer_generator
+    )
+
+    result = assistant.call("Compare lions and tigers", user: @user)
+
+    assert_equal queries, result.metadata[:retrieval_queries]
+    assert_equal [ 1, 1 ], result.metadata[:selected_chunks].map { |chunk| chunk[:position] }
+    assert_includes answer_generator.prompt, "identify meaningful similarities and differences"
+    assert_includes result.answer, "[1] wildlife.txt (p. 1)"
+  end
+
   test "returns retrieval failures as explicit errors" do
     assistant = Rag::Assistant.new(
       retriever: FailingRetriever.new("query embedding unavailable"),
@@ -115,6 +152,15 @@ class RagAssistantTest < ActiveSupport::TestCase
 
     def call(prompt:, conversation: [], model: nil)
       { text: @answer, provider: :fake, model: model || "fake-model" }
+    end
+  end
+
+  class CapturingAnswerGenerator < FakeAnswerGenerator
+    attr_reader :prompt
+
+    def call(prompt:, **options)
+      @prompt = prompt
+      super
     end
   end
 

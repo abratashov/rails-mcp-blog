@@ -20,7 +20,7 @@ module Rag
       total_tokens = 0
       budget = max_tokens.to_i
 
-      deduplicated.sort_by { |item| [-(numeric_value(item, :score) || 0.0), integer_value(item, :position)] }.each do |result|
+      ordered_results(deduplicated).each do |result|
         source_text = format_context_entry(result, selected.length + 1)
         token_count = estimate_tokens(source_text)
         next if token_count.zero?
@@ -47,12 +47,28 @@ module Rag
     def deduplicate(results)
       seen = {}
       results.each_with_object([]) do |result, filtered|
-        key = [read_value(result, :document_id), read_value(result, :position), read_value(result, :content).to_s.strip]
+        document_id = read_value(result, :document_id)
+        position = read_value(result, :position)
+        key = if document_id.present? && position.present?
+          [ document_id, position ]
+        else
+          [ document_id, position, read_value(result, :content).to_s.strip ]
+        end
         next if seen[key]
 
         seen[key] = true
         filtered << result
       end
+    end
+
+    def ordered_results(results)
+      comparative = results.any? do |result|
+        metadata = read_value(result, :metadata)
+        metadata.is_a?(Hash) && (metadata.key?("comparative_subject") || metadata.key?(:comparative_subject))
+      end
+      return results if comparative
+
+      results.sort_by { |item| [ -(numeric_value(item, :score) || 0.0), integer_value(item, :position) ] }
     end
 
     def format_context_entry(result, index)

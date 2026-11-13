@@ -1,7 +1,7 @@
 require "test_helper"
 
 class RagPromptBuilderTest < ActiveSupport::TestCase
-  Context = Struct.new(:filename, :page_start, :page_end, :content, keyword_init: true)
+  Context = Struct.new(:filename, :page_start, :page_end, :content, :metadata, keyword_init: true)
 
   test "includes grounding rules, context, conversation history, question, and detected language" do
     prompt = Rag::PromptBuilder.new.call(
@@ -42,5 +42,23 @@ class RagPromptBuilderTest < ActiveSupport::TestCase
 
     assert_includes prompt, "No relevant document context was retrieved."
     assert_includes prompt, "Answer in english"
+  end
+
+  test "adds evidence-grounded comparison guidance only for comparative questions" do
+    prompt = Rag::PromptBuilder.new.call(
+      question: "Compare lions and tigers",
+      context: [
+        Context.new(
+          filename: "wildlife.txt",
+          content: "Lions live in groups.",
+          metadata: { "comparative_subject" => "lions", "comparative_aspect" => "social behavior" }
+        )
+      ],
+      question_type: "comparative"
+    )
+
+    assert_includes prompt, "identify meaningful similarities and differences"
+    assert_includes prompt, "State explicitly when evidence for a subject or aspect is missing"
+    assert_includes prompt, 'subject="lions" aspect="social behavior"'
   end
 end
