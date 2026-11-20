@@ -52,6 +52,47 @@ class AdminRagConversationsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match "**Cat (кошка)**", response.body
   end
 
+  test "admin can delete a conversation through a CSRF-protected UJS link" do
+    conversation = @user.rag_conversations.create!(title: "Conversation to delete", messages: [])
+    with_forgery_protection do
+      get admin_rag_conversations_path
+
+      assert_response :success
+      delete_path = admin_rag_conversation_path(conversation)
+      document = Nokogiri::HTML(response.body)
+      link = document.css("a.delete_link").find { |node| node["href"] == delete_path }
+      assert link, "expected the index to render a delete link"
+      assert_equal "delete", link["data-method"]
+      token = document.at_css("meta[name='csrf-token']")&.[]("content")
+      assert token.present?, "expected ActiveAdmin to publish the CSRF token for UJS"
+
+      post delete_path, params: { _method: "delete" }
+      assert_response :unprocessable_entity
+      assert RagConversation.exists?(conversation.id), "a request without a CSRF token must not delete"
+
+      post delete_path, params: { _method: "delete", authenticity_token: token }
+      assert_redirected_to admin_rag_conversations_path
+      assert_not RagConversation.exists?(conversation.id)
+    end
+  end
+
+  test "show page renders a CSRF-protected UJS delete link" do
+    conversation = @user.rag_conversations.create!(title: "Conversation to delete", messages: [])
+
+    with_forgery_protection do
+      get admin_rag_conversation_path(conversation)
+
+      assert_response :success
+      document = Nokogiri::HTML(response.body)
+      link = document.css("a[data-method='delete']").find do |node|
+        node["href"] == admin_rag_conversation_path(conversation)
+      end
+      assert link, "expected the show page to render a delete link"
+      assert_equal "delete", link["data-method"]
+      assert document.at_css("meta[name='csrf-token'][content]"), "expected a CSRF token for UJS"
+    end
+  end
+
   test "does not permit messages to be overwritten when updating a conversation" do
     conversation = @user.rag_conversations.create!(
       title: "Original title",
@@ -71,5 +112,16 @@ class AdminRagConversationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Updated title", conversation.reload.title
     assert_equal "Original answer", conversation.messages.first["content"]
     assert_equal({ "document_id" => 12 }, conversation.metadata)
+  end
+
+  private
+
+  def with_forgery_protection
+    controller = Admin::RagConversationsController
+    previous_setting = controller.allow_forgery_protection
+    controller.allow_forgery_protection = true
+    yield
+  ensure
+    controller.allow_forgery_protection = previous_setting
   end
 end

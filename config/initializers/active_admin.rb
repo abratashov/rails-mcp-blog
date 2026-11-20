@@ -1,5 +1,6 @@
 ActiveAdmin.setup do |config|
   config.register_javascript "jquery3.js"
+  config.register_javascript "jquery_ujs.js"
   config.register_javascript "select2.js"
 
   # == Site Title

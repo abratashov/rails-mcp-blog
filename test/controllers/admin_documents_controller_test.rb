@@ -139,6 +139,7 @@ class AdminDocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "details.semantic-search-advanced"
     assert_select "summary", text: "Advanced options"
     assert_select "script[src*='jquery3']"
+    assert_select "script[src*='jquery_ujs']"
     assert_select "script[src*='select2']"
     assert_select "select[name='search[embedding_identity]'] option[selected]", text: /text-embedding-3-small/
     assert_select "form[action='#{admin_semantic_search_search_path}'][method='post']" do
