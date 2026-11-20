@@ -29,10 +29,11 @@ class Documents::ProcessorTest < ActiveSupport::TestCase
   end
 
   test "processes uploaded documents into chunks and asynchronously embeds those chunks" do
-    embedding_key = ENV["EMBEDDING_API_KEY"]
-    embedding_base_url = ENV["EMBEDDING_API_BASE_URL"]
-    ENV["EMBEDDING_API_KEY"] = "test-key"
-    ENV["EMBEDDING_API_BASE_URL"] = "https://api.openai.com/v1"
+    embedding_env = %w[
+      EMBEDDING_PROVIDER EMBEDDING_API_BASE_URL EMBEDDING_API_KEY EMBEDDING_MODEL
+      EMBEDDING_DIMENSIONS EMBEDDING_SEND_DIMENSIONS EMBEDDING_CONFIGURATION_VERSION
+    ].to_h { |key| [ key, ENV[key] ] }
+
     request = stub_request(:post, "https://api.openai.com/v1/embeddings")
       .to_return do |http_request|
         input = JSON.parse(http_request.body).fetch("input")
@@ -58,8 +59,7 @@ class Documents::ProcessorTest < ActiveSupport::TestCase
       document.document_chunk_embeddings.where(status: "completed").count
     assert_requested request
   ensure
-    ENV["EMBEDDING_API_KEY"] = embedding_key
-    ENV["EMBEDDING_API_BASE_URL"] = embedding_base_url
+    embedding_env.each { |key, value| ENV[key] = value }
   end
 
   private

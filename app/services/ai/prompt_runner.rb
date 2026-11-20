@@ -14,27 +14,27 @@ module AI
 
     LLMS = {
       ollama: {
-        access_token: "ollama",
-        model: "qwen3:4b",
-        url: "http://localhost:11434/v1"
+        access_token: ENV["LLM_ACCESS_TOKEN"],
+        model: ENV["LLM_MODEL"],
+        url: ENV["LLM_URL"],
       },
 
       openai: {
-        access_token: ENV["OPENAI_API_KEY"],
-        model: "gpt-5",
-        url: "https://api.openai.com/v1"
+        access_token: ENV["LLM_ACCESS_TOKEN"],
+        model: ENV["LLM_MODEL"],
+        url: ENV["LLM_URL"],
       },
 
       openrouter: {
-        access_token: ENV["OPENROUTER_API_KEY"],
-        model: "openrouter/free",
-        url: "https://openrouter.ai/api/v1"
+        access_token: ENV["LLM_ACCESS_TOKEN"],
+        model: ENV["LLM_MODEL"],
+        url: ENV["LLM_URL"],
       },
 
       vllm: {
-        access_token: "vllm",
-        model: "Qwen/Qwen3-4B-AWQ",
-        url: "http://localhost:8000/v1"
+        access_token: ENV["LLM_ACCESS_TOKEN"],
+        model: ENV["LLM_MODEL"],
+        url: ENV["LLM_URL"],
       }
     }.freeze
 
@@ -43,7 +43,7 @@ module AI
     def initialize(
       prompt_name:,
       prompt_arguments: {},
-      provider: :vllm,
+      provider: ENV.fetch("LLM_PROVIDER", "vllm"),
       mcp_url: MCP_URL,
       messages: nil,
       access_token: nil

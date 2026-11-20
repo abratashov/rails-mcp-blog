@@ -4,7 +4,7 @@ module Rag
       @client = client
       @provider = provider.to_sym
       @model = model
-      @temperature = temperature
+      @temperature = ENV.fetch("LLM_ANSWER_CREATIVITY", temperature).to_f
       @max_tokens = max_tokens
     end
 

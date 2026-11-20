@@ -14,7 +14,7 @@ module Rag
     def initialize(
       client: nil,
       provider: ENV.fetch("QUERY_CLASSIFIER_PROVIDER", ENV.fetch("LLM_PROVIDER", "vllm")).to_sym,
-      model: ENV["QUERY_CLASSIFIER_MODEL"],
+      model: ENV.fetch("QUERY_CLASSIFIER_MODEL", ENV.fetch("LLM_MODEL", "vllm")),
       confidence_threshold: ENV.fetch("QUERY_CLASSIFIER_CONFIDENCE_THRESHOLD", "0.6")
     )
       @client = client

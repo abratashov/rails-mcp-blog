@@ -150,19 +150,23 @@ rails g mcp_prompt EssayWorkshop language:required
 
 ```sh
 # OpenRouter usage
-# Get OPENROUTER_API_KEY from https://openrouter.ai/workspaces/default/keys
+# Get LLM_ACCESS_TOKEN from https://openrouter.ai/workspaces/default/keys
 # Add it to .env.development
 
 # OpenAI usage
-# Get OPENAI_API_KEY from https://platform.openai.com/api-keys
+# Get LLM_ACCESS_TOKEN from https://platform.openai.com/api-keys
 # Add it to .env.development
 
-# Ollama usage
+# Ollama usage:
 cd ~/installs
 curl -fsSL https://ollama.com/install.sh | sh
 ollama --version
 curl -I http://localhost:11434
+# Load LLM model
 ollama pull qwen3:4b
+# Load embedding model
+ollama pull bge-m3
+# Run LLM
 ollama run qwen3:4b
 
 # Example prompt:
@@ -184,4 +188,7 @@ vllm --version
 # export PATH="$HOME/installs/.venv/bin:$PATH"
 
 vllm serve Qwen/Qwen3-4B-AWQ --max-model-len 4096 --gpu-memory-utilization 0.90 --enable-auto-tool-choice --tool-call-parser hermes
+
+# Test Embedding Model:
+curl http://localhost:11434/api/embed -d '{ "model": "nomic-embed-text", "input": "What do lions eat?" }'
 ```
