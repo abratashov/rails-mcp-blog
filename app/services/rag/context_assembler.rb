@@ -1,7 +1,7 @@
 require "securerandom"
 
 module Rag
-  ContextItem = Struct.new(:source_id, :document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata, :context, :token_count, keyword_init: true)
+  ContextItem = Struct.new(:source_id, :source_chunk_id, :document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata, :context, :token_count, keyword_init: true)
 
   class ContextAssembler
     DEFAULT_MAX_TOKENS = 4_000
@@ -91,6 +91,7 @@ module Rag
       match = source_text[/\[Source (\d+)\]/, 1]
       ContextItem.new(
         source_id: match || SecureRandom.uuid,
+        source_chunk_id: read_value(result, :id),
         document_id: read_value(result, :document_id),
         filename: read_value(result, :filename),
         page_start: read_value(result, :page_start),

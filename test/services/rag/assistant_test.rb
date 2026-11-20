@@ -69,6 +69,30 @@ class RagAssistantTest < ActiveSupport::TestCase
     assert_includes result.answer, "[1] wildlife.txt (p. 1)"
   end
 
+  test "passes conversation history only to the answer generator" do
+    conversation = [
+      { "role" => "user", "content" => "Earlier question" },
+      { "role" => "assistant", "content" => "Earlier answer" }
+    ]
+    answer_generator = CapturingAnswerGenerator.new("Grounded reply.")
+    assistant = Rag::Assistant.new(
+      query_classifier: FakeQueryClassifier.new("specific"),
+      retriever: FakeRetriever.new([
+        Struct.new(:document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata).new(
+          42, "guide.txt", nil, nil, 1, "Document evidence.", 0.9, 0.1, {}
+        )
+      ]),
+      answer_generator: answer_generator
+    )
+
+    assistant.call("Current question", user: @user, conversation: conversation)
+
+    assert_equal conversation, answer_generator.conversation
+    assert_includes answer_generator.prompt, "Current question"
+    assert_not_includes answer_generator.prompt, "Earlier question"
+    assert_not_includes answer_generator.prompt, "Earlier answer"
+  end
+
   test "returns retrieval failures as explicit errors" do
     assistant = Rag::Assistant.new(
       retriever: FailingRetriever.new("query embedding unavailable"),
@@ -156,11 +180,12 @@ class RagAssistantTest < ActiveSupport::TestCase
   end
 
   class CapturingAnswerGenerator < FakeAnswerGenerator
-    attr_reader :prompt
+    attr_reader :prompt, :conversation
 
-    def call(prompt:, **options)
+    def call(prompt:, conversation: [], **options)
       @prompt = prompt
-      super
+      @conversation = conversation
+      super(prompt: prompt, conversation: conversation, **options)
     end
   end
 

@@ -1,6 +1,13 @@
 module Rag
   class RetrievalRouter
-    RoutingResult = Struct.new(:chunks, :strategy, :retrieval_queries, keyword_init: true)
+    RoutingResult = Struct.new(
+      :chunks,
+      :strategy,
+      :retrieval_queries,
+      :incomplete_documents,
+      :document_count,
+      keyword_init: true
+    )
 
     STRATEGY_NAMES = {
       "specific" => "semantic_top_k",
@@ -11,7 +18,7 @@ module Rag
     def initialize(semantic_search: nil, comparative_search: nil, exhaustive_search: nil)
       @semantic_search = semantic_search || Retriever.new
       @comparative_search = comparative_search || Rag::Strategies::ComparativeSearch.new(fallback: @semantic_search)
-      @exhaustive_search = exhaustive_search || Rag::Strategies::ExhaustiveSearch.new(fallback: @semantic_search)
+      @exhaustive_search = exhaustive_search || Rag::Strategies::ExhaustiveSearch.new
     end
 
     def call(question, question_type:, user:, document_id: nil, metadata: nil, top_k: nil)
@@ -25,11 +32,15 @@ module Rag
       )
       chunks = strategy_result.respond_to?(:chunks) ? strategy_result.chunks : strategy_result
       retrieval_queries = strategy_result.queries if strategy_result.respond_to?(:queries)
+      incomplete_documents = strategy_result.incomplete_documents if strategy_result.respond_to?(:incomplete_documents)
+      document_count = strategy_result.document_count if strategy_result.respond_to?(:document_count)
 
       RoutingResult.new(
         chunks: chunks,
         strategy: STRATEGY_NAMES.fetch(normalize_type(question_type)),
-        retrieval_queries: retrieval_queries
+        retrieval_queries: retrieval_queries,
+        incomplete_documents: incomplete_documents,
+        document_count: document_count
       )
     end
 

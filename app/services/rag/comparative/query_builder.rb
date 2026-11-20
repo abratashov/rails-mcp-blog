@@ -3,8 +3,43 @@ module Rag
     class QueryBuilder
       Query = Struct.new(:subject, :aspect, :text, keyword_init: true)
 
-      SUBJECT_SEPARATOR = /\s+(?:and|with|to|against|vs\.?|versus)\s+/i
-      SCOPE_SUFFIX = /\s+(?:across|in terms of|in|on|for|regarding|based on)\s+(.+)\z/i
+      SUBJECT_SEPARATOR = /
+        \s+
+        (?:
+          and|with|to|against|vs\.?|versus|
+          і|й|та|з|із|зі|
+          и|с|со
+        )
+        \s+
+      /ix
+
+      COMPARISON_VERB = /
+        (?:
+          compare|compares|comparing|
+          порівняй(?:те)?|порівняти|
+          сравни(?:те)?|сравнить
+        )
+      /ix
+
+      BETWEEN_PHRASE = /
+        (?:
+          (?:what\s+are\s+the\s+)?(?:differences|similarities|relationship)\s+between
+          |(?:які\s+)?(?:відмінності|різниця|різниці|схожість|подібність|зв'язок|взаємозв'язок|пов'язані)\s+між
+          |(?:какие\s+)?(?:различия|разница|сходство|связь|связаны)\s+между
+          |в\s+чём\s+(?:разница|различие)\s+между
+          |в\s+чем\s+(?:разница|различие)\s+между
+        )
+      /ix
+
+      SCOPE_SUFFIX = /
+        \s+
+        (?:
+          across|in\s+terms\s+of|in|on|for|regarding|based\s+on|
+          за|щодо|стосовно|з\s+точки\s+зору|у\s+контексті|
+          по|в\s+плане|с\s+точки\s+зрения|относительно|в\s+контексте
+        )
+        \s+(.+)\z
+      /ix
 
       def call(question)
         text = question.to_s.strip
@@ -21,13 +56,13 @@ module Rag
 
       def extract_subjects_and_aspect(question)
         match = question.match(
-          /\A(?:compare\s+)?(?<left>.+?)\s+(?:vs\.?|versus)\s+(?<right>.+)\z/i
+          /\A(?:#{COMPARISON_VERB}\s+)?(?<left>.+?)\s+(?:vs\.?|versus)\s+(?<right>.+)\z/i
         )
         match ||= question.match(
-          /\Acompare\s+(?<left>.+?)#{SUBJECT_SEPARATOR}(?<right>.+)\z/i
+          /\A#{COMPARISON_VERB}\s+(?<left>.+?)#{SUBJECT_SEPARATOR}(?<right>.+)\z/i
         )
         match ||= question.match(
-          /\A(?:what\s+are\s+the\s+)?(?:differences|similarities|relationship)\s+between\s+(?<left>.+?)\s+and\s+(?<right>.+)\z/i
+          /\A#{BETWEEN_PHRASE}\s+(?<left>.+?)#{SUBJECT_SEPARATOR}(?<right>.+)\z/i
         )
         return [ [], nil ] unless match
 

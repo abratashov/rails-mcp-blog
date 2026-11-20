@@ -1,5 +1,6 @@
 module Retrieval
   Result = Struct.new(
+    :id,
     :content,
     :document_id,
     :filename,

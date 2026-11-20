@@ -23,10 +23,13 @@ module Rag
       }
       parameters[:temperature] = @temperature unless @temperature.nil?
       parameters[:max_tokens] = @max_tokens unless @max_tokens.nil?
-
+      # Rails.logger.debug '=========================================== Request to AI:'
+      # pp parameters
       response = client.chat(parameters: parameters)
       content = response.dig("choices", 0, "message", "content") || response.dig("output_text") || response.dig("message", "content")
       text = extract_text(content)
+      # Rails.logger.debug '=========================================== AI Response:'
+      # Rails.logger.debug text
 
       raise StandardError, "The LLM returned an empty response" if text.to_s.strip.empty?
 
