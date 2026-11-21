@@ -11,6 +11,8 @@ module Rag
     :provider,
     :model,
     :error,
+    :timings,
+    :token_usage,
     keyword_init: true
   )
 end

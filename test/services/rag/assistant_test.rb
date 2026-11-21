@@ -32,6 +32,19 @@ class RagAssistantTest < ActiveSupport::TestCase
     assert_includes result.answer, "couldn't find enough relevant information"
   end
 
+  test "does not cite unrelated retrieved chunks when the answer says evidence is absent" do
+    assistant = Rag::Assistant.new(
+      retriever: FakeRetriever.new([ assistant_chunk(42, "Lions live in prides.", 1) ]),
+      query_classifier: FakeQueryClassifier.new("specific"),
+      answer_generator: FakeAnswerGenerator.new("The provided documents do not mention penguins or their diet.")
+    )
+
+    result = assistant.call("What do penguins eat?", user: @user)
+
+    assert_empty result.citations
+    assert_not_includes result.answer, "Sources:"
+  end
+
   test "records comparative queries and selected chunks and asks for an evidence-based comparison" do
     chunks = [
       Struct.new(:document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata).new(
@@ -65,8 +78,30 @@ class RagAssistantTest < ActiveSupport::TestCase
 
     assert_equal queries, result.metadata[:retrieval_queries]
     assert_equal [ 1, 1 ], result.metadata[:selected_chunks].map { |chunk| chunk[:position] }
-    assert_includes answer_generator.prompt, "identify meaningful similarities and differences"
+    assert_includes answer_generator.prompt, "Briefly identify meaningful similarities and differences"
     assert_includes result.answer, "[1] wildlife.txt (p. 1)"
+  end
+
+  test "removes model source footer and only appends citations referenced by the answer" do
+    chunks = [
+      assistant_chunk(42, "First source.", 1),
+      assistant_chunk(43, "Second source.", 2)
+    ]
+    answer_generator = FakeAnswerGenerator.new(
+      "The first source supports this [1].\n\nSources: [1] model-invented.txt"
+    )
+    assistant = Rag::Assistant.new(
+      query_classifier: FakeQueryClassifier.new("specific"),
+      retriever: FakeRetriever.new(chunks),
+      answer_generator: answer_generator
+    )
+
+    result = assistant.call("What is supported?", user: @user)
+
+    assert_equal 1, result.citations.length
+    assert_includes result.answer, "[1] guide.txt"
+    assert_equal 1, result.answer.scan("Sources:").length
+    assert_not_includes result.answer, "model-invented.txt"
   end
 
   test "passes conversation history only to the answer generator" do
@@ -131,7 +166,7 @@ class RagAssistantTest < ActiveSupport::TestCase
 
     results = retriever.call("Summarize the guide", user: @user, top_k: 7)
 
-    assert_equal ["guide"], results.map(&:content)
+    assert_equal [ "guide" ], results.map(&:content)
     assert_equal "Summarize the guide", fake_search.options[:question]
   end
 
@@ -154,6 +189,12 @@ class RagAssistantTest < ActiveSupport::TestCase
         )
       ]),
       answer_generator: FakeAnswerGenerator.new("You should follow the checklist before publishing.")
+    )
+  end
+
+  def assistant_chunk(id, content, position)
+    Struct.new(:id, :document_id, :filename, :page_start, :page_end, :position, :content, :score, :distance, :metadata).new(
+      id, 42, "guide.txt", nil, nil, position, content, 0.9, 0.1, {}
     )
   end
 
@@ -224,7 +265,7 @@ class RagAssistantTest < ActiveSupport::TestCase
 
     def call(question, user:, document_id: nil, metadata: nil)
       @options = { question: question, user: user, document_id: document_id, metadata: metadata }
-      [Struct.new(:content).new("guide")]
+      [ Struct.new(:content).new("guide") ]
     end
   end
 end

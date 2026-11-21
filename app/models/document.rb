@@ -15,8 +15,10 @@ class Document < ApplicationRecord
   has_many :document_chunks, -> { order(:position) }, dependent: :destroy
   has_many :document_chunk_embeddings, through: :document_chunks
 
+  attr_accessor :suppress_processing_enqueue
+
   before_validation :copy_file_metadata, if: -> { attachment_changes.key?("file") }
-  after_create_commit :enqueue_processing
+  after_create_commit :enqueue_processing, unless: -> { suppress_processing_enqueue }
 
   validates :filename, :content_type, :file_size, :checksum, presence: true
   validates :status, inclusion: { in: STATUSES }

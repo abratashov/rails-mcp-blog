@@ -31,6 +31,8 @@ module Rag
       raise ArgumentError, "A question is required to generate an answer" if question.to_s.strip.empty?
       raise ArgumentError, "A user is required to generate a document-grounded answer" if user.blank?
 
+      started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      timings = {}
       retrieval_results = []
       context = []
       prompt = ""
@@ -44,15 +46,25 @@ module Rag
       failed_batches = []
 
       begin
-        classification = @query_classifier.call(question)
-        routing_result = @retrieval_router.call(
-          question,
-          question_type: classification.question_type,
-          user: user,
-          document_id: document_id,
-          metadata: metadata,
-          top_k: top_k
-        )
+        classification_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        begin
+          classification = @query_classifier.call(question)
+        ensure
+          timings[:classification_seconds] = elapsed_since(classification_started_at)
+        end
+        retrieval_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        begin
+          routing_result = @retrieval_router.call(
+            question,
+            question_type: classification.question_type,
+            user: user,
+            document_id: document_id,
+            metadata: metadata,
+            top_k: top_k
+          )
+        ensure
+          timings[:retrieval_seconds] = elapsed_since(retrieval_started_at)
+        end
         retrieval_results = routing_result.chunks
         retrieval_strategy = routing_result.strategy
         retrieval_queries = routing_result.retrieval_queries
@@ -103,13 +115,22 @@ module Rag
             metadata: result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries, retrieval_results, incomplete_documents, document_count, aggregation_results),
             provider: @answer_generator.instance_variable_get(:@provider),
             model: @answer_generator.instance_variable_get(:@model),
-            error: nil
+            error: nil,
+            timings: timings.merge(total_seconds: elapsed_since(started_at)),
+            token_usage: nil
           )
         end
 
-        response = @answer_generator.call(prompt: prompt, conversation: conversation)
+        generation_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        begin
+          response = @answer_generator.call(prompt: prompt, conversation: conversation)
+        ensure
+          timings[:generation_seconds] = elapsed_since(generation_started_at)
+        end
         answer = response.fetch(:text)
+        answer = answer.to_s.sub(/\n{0,2}Sources:\s.*\z/im, "").strip
         citations = aggregation_results ? build_aggregation_citations(prompt_aggregation_data, context, retrieval_results) : build_citations(context)
+        citations = citations_used_by(answer, citations)
         answer_text = decorate_with_citations(aggregation_results ? aggregation_caveat(answer, aggregation_results) : answer, citations)
 
         Rag::Result.new(
@@ -123,7 +144,9 @@ module Rag
           metadata: result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries, retrieval_results, incomplete_documents, document_count, aggregation_results),
           provider: response[:provider],
           model: response[:model],
-          error: nil
+          error: nil,
+          timings: timings.merge(total_seconds: elapsed_since(started_at)),
+          token_usage: response[:usage]
         )
       rescue StandardError => e
         Rag::Result.new(
@@ -137,12 +160,18 @@ module Rag
           metadata: result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries, retrieval_results, incomplete_documents, document_count, aggregation_results),
           provider: @answer_generator.instance_variable_get(:@provider),
           model: @answer_generator.instance_variable_get(:@model),
-          error: e.message
+          error: e.message,
+          timings: timings.merge(total_seconds: elapsed_since(started_at)),
+          token_usage: nil
         )
       end
     end
 
     private
+
+    def elapsed_since(started_at)
+      Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
+    end
 
     def result_metadata(document_id, metadata, classification, retrieval_strategy, retrieval_queries = nil, retrieval_results = [], incomplete_documents = [], document_count = nil, aggregation_results = nil)
       {
@@ -306,7 +335,7 @@ module Rag
     end
 
     def page_reference(citation)
-      pages = [citation[:page_start], citation[:page_end]].compact.uniq
+      pages = [ citation[:page_start], citation[:page_end] ].compact.uniq
       return "" if pages.empty?
 
       " (p. #{pages.join("-")})"
@@ -328,6 +357,17 @@ module Rag
           distance: item.distance
         }
       end
+    end
+
+    def citations_used_by(answer, citations)
+      return [] if answer.to_s.match?(
+        /insufficient evidence|couldn't find enough|not enough relevant|no relevant (?:evidence|information)|no reference|not (?:mentioned|covered|referenced)|doesn't mention|does not mention|do not mention|don't mention|no information|нет информации|недостаточно информации|не знайш|не містить|не згад|не.{0,30}(?:інформац|даних|згад|містить)|немає (?:достатньої )?(?:інформації|даних)|не вказано|не зазначено|не описано|не упомина|не указано|не найден/i
+      )
+
+      referenced = citations.select do |citation|
+        answer.to_s.match?(/\[#{Regexp.escape(citation[:label].to_s)}\](?!\d)/)
+      end
+      referenced.presence || citations
     end
   end
 end

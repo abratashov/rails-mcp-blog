@@ -11,7 +11,7 @@ module Embeddings
       @sleeper = sleeper
     end
 
-    def embed(texts)
+    def embed(texts, prefix: nil)
       raise Error, "Embedding input batch must not be empty" if texts.empty?
 
       @configuration.validate_provider!
@@ -19,7 +19,7 @@ module Embeddings
       request["Authorization"] = "Bearer #{@configuration.api_key}"
       request["Content-Type"] = "application/json"
       payload = {
-        input: texts,
+        input: texts.map { |text| "#{prefix}#{text}" },
         model: @configuration.model
       }
       payload[:dimensions] = @configuration.dimensions if @configuration.send_dimensions

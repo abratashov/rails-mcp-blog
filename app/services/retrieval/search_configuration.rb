@@ -69,6 +69,8 @@ module Retrieval
         "EMBEDDING_CONFIGURATION_VERSION" => identity.fetch(:configuration_version).to_s,
         "EMBEDDING_SEND_DIMENSIONS" => base.send_dimensions.to_s,
         "EMBEDDING_MAX_INPUT_CHARACTERS" => base.max_input_characters.to_s,
+        "EMBEDDING_QUERY_PREFIX" => base.query_prefix,
+        "EMBEDDING_PASSAGE_PREFIX" => base.passage_prefix,
         "EMBEDDING_OPEN_TIMEOUT" => base.open_timeout.to_s,
         "EMBEDDING_READ_TIMEOUT" => base.read_timeout.to_s,
         "EMBEDDING_WRITE_TIMEOUT" => base.write_timeout.to_s,

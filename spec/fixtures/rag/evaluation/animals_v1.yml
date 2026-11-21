@@ -1,0 +1,261 @@
+name: animals_v1
+questions:
+  - id: lion_habitat_en
+    type: specific
+    language: en
+    question: What is the basic social unit of lions?
+    expected_answer: The basic social unit of lions is called a pride.
+    expected_terms: [lions, pride]
+    expected_term_groups:
+      - [lion, lions]
+      - [pride, prides]
+    gold_concepts:
+      - id: lion
+        aliases: [lion, lions]
+      - id: pride
+        aliases: [pride, prides]
+    gold_relations:
+      - subject: lion
+        predicate_aliases: [live in, social unit, called]
+        object: pride
+        evidence_groups: [[lion, lions], [called, social unit], [pride, prides]]
+    relevant_source_chunks:
+      - content_contains: Their basic social unit is called a pride.
+      - content_contains: Lions and wolves are social
+  - id: lion_habitat_ua
+    type: specific
+    language: ua
+    question: Як називається основна соціальна група левів?
+    expected_answer: Основна соціальна група левів називається прайдом.
+    expected_terms: [левів, прайдом]
+    expected_term_groups:
+      - [лев, левів, леви]
+      - [прайд, прайдом, прайди, прайдами, прайді, прайдах]
+    evidence_term_groups:
+      - [lion, lions]
+      - [called, social unit]
+      - [pride, prides]
+    gold_concepts:
+      - id: lion
+        aliases: [лев, левів, леви]
+      - id: pride
+        aliases: [прайд, прайдом, прайди, прайдами, прайді, прайдах]
+        incorrect_aliases: [прід]
+    gold_relations:
+      - subject: lion
+        predicate_aliases: [живе, живуть, соціальна, соціальними, група, називається]
+        object: pride
+        evidence_groups: [[lion, lions], [called, social unit], [pride, prides]]
+    relevant_source_chunks:
+      - content_contains: Their basic social unit is called a pride.
+      - content_contains: Lions and wolves are social
+  - id: tiger_behavior_ru
+    type: specific
+    language: ru
+    question: Как обычно живут взрослые тигры?
+    expected_answer: Взрослые тигры обычно живут и охотятся поодиночке.
+    expected_terms: [тигры, поодиночке]
+    expected_term_groups:
+      - [тигр, тигры]
+      - [одиноч, поодиноч, солитарный, солитарный образ жизни]
+    evidence_term_groups:
+      - [tiger, tigers]
+      - [generally, solitary]
+    gold_concepts:
+      - id: tiger
+        aliases: [тигр, тигры]
+      - id: solitary
+        aliases: [одиночка, одиночку, одиночно, поодиночке, солитарный, солитарный образ жизни]
+    gold_relations:
+      - subject: tiger
+        predicate_aliases: [живет, живут, ведет, ведут, остается, обычно]
+        object: solitary
+        evidence_groups: [[tiger, tigers], [are, generally], [solitary]]
+    relevant_source_chunks:
+      - content_contains: Tigers are generally solitary.
+  - id: tiger_habitat_en
+    type: specific
+    language: en
+    question: Where do tigers live?
+    expected_answer: Tigers live in varied habitats, including forests and wetlands.
+    expected_terms: [tigers, forests, wetlands]
+    expected_term_groups:
+      - [tiger, tigers]
+      - [forest, forests]
+      - [wetland, wetlands, mangrove, mangroves]
+    gold_concepts:
+      - id: tiger
+        aliases: [tiger, tigers]
+      - id: forest
+        aliases: [forest, forests]
+      - id: wetland
+        aliases: [wetland, wetlands, mangrove, mangroves]
+    gold_relations:
+      - subject: tiger
+        predicate_aliases: [live in, inhabit, found in, use, inhabit]
+        object: forest
+        evidence_groups: [[tiger, tigers], [inhabit, found in, live in], [forest, forests]]
+      - subject: tiger
+        predicate_aliases: [live in, inhabit, found in, use]
+        object: wetland
+        evidence_groups: [[tiger, tigers], [inhabit, found in, live in], [wetland, wetlands, mangrove, mangroves]]
+    relevant_source_chunks:
+      - content_contains: forests, wetlands, mangroves
+  - id: compare_social_behavior
+    type: comparative
+    language: en
+    question: Compare the social behavior of lions and tigers.
+    expected_answer: Lions commonly live in prides, while tigers are generally solitary.
+    comparison_terms: [lions, prides, tigers, solitary]
+    expected_terms: [lions, prides, tigers, solitary]
+    expected_term_groups:
+      - [lion, lions]
+      - [pride, prides]
+      - [tiger, tigers]
+      - [solitary, alone]
+    gold_concepts:
+      - id: lion
+        aliases: [lion, lions]
+      - id: pride
+        aliases: [pride, prides]
+      - id: tiger
+        aliases: [tiger, tigers]
+      - id: solitary
+        aliases: [solitary, alone]
+    gold_relations:
+      - subject: lion
+        predicate_aliases: [live in, commonly live, form]
+        object: pride
+        evidence_groups: [[lion, lions], [live in, commonly live, social], [pride, prides]]
+      - subject: tiger
+        predicate_aliases: [are, generally, remain, live]
+        object: solitary
+        evidence_groups: [[tiger, tigers], [are, generally], [solitary]]
+    relevant_source_chunks:
+      - content_contains: Lions are social and commonly live in prides.
+      - content_contains: Tigers are generally solitary
+  - id: compare_habitat_ua
+    type: comparative
+    language: ua
+    question: Порівняй соціальну поведінку левів і тигрів.
+    expected_answer: Леви зазвичай живуть прайдами, тоді як тигри переважно є одинаками.
+    comparison_terms: [леви, прайдами, тигри, одинаками]
+    expected_terms: [леви, прайдами, тигри, одинаками]
+    expected_term_groups:
+      - [лев, леви]
+      - [прайд, прайдами, прайдах]
+      - [тигр, тигри]
+      - [одинак, одинаками, одиноч, самотні, самотніми]
+    evidence_term_groups:
+      - [lion, lions]
+      - [social, prides]
+      - [tiger, tigers]
+      - [generally, solitary]
+    gold_concepts:
+      - id: lion
+        aliases: [лев, леви]
+      - id: pride
+        aliases: [прайд, прайдами, прайдах]
+      - id: tiger
+        aliases: [тигр, тигри]
+      - id: solitary
+        aliases: [одинак, одинаками, одиночок, поодинці, самотні, самотніми]
+    gold_relations:
+      - subject: lion
+        predicate_aliases: [живе, живуть, живляться, є, соціальна, формують]
+        object: pride
+        evidence_groups: [[lion, lions], [live in, commonly live, social], [pride, prides]]
+      - subject: tiger
+        predicate_aliases: [є, залишаються, зазвичай]
+        object: solitary
+        evidence_groups: [[tiger, tigers], [are, generally], [solitary]]
+    relevant_source_chunks:
+      - content_contains: Lions are social and commonly live in prides.
+      - content_contains: Tigers are generally solitary
+  - id: count_species
+    type: aggregation
+    language: en
+    question: How many distinct mammal species does the reference describe?
+    expected_answer: "Six distinct mammal species."
+    answer_term_groups:
+      - [six, 6]
+    expected_terms: [six, lion, tiger, wolf, fox, bear, lynx]
+    expected_term_groups:
+      - [six, 6]
+      - [lion]
+      - [tiger]
+      - [wolf]
+      - [red fox, fox]
+      - [brown bear, bear]
+      - [lynx]
+    expected_count: 6
+    expected_entities: [lion, tiger, wolf, red fox, brown bear, lynx]
+    gold_concepts:
+      - id: lion
+        aliases: [lion, lions]
+      - id: tiger
+        aliases: [tiger, tigers]
+      - id: wolf
+        aliases: [wolf, wolves]
+      - id: red_fox
+        aliases: [red fox, fox, foxes]
+      - id: brown_bear
+        aliases: [brown bear, bear, bears]
+      - id: lynx
+        aliases: [lynx]
+    relevant_source_chunks:
+      - content_contains: This reference describes six distinct mammal species
+  - id: count_species_ru
+    type: aggregation
+    language: ru
+    question: Сколько видов млекопитающих описано в справочнике?
+    expected_answer: "В справочнике описано шесть видов млекопитающих."
+    answer_term_groups:
+      - [шесть, 6]
+    expected_terms: [шесть, лев, тигр, волк, лисица, медведь, рысь]
+    expected_term_groups:
+      - [шесть]
+      - [лев]
+      - [тигр]
+      - [волк]
+      - [лисиц, лиса]
+      - [медвед]
+      - [рысь]
+    evidence_term_groups:
+      - [six, 6]
+      - [lion, lions]
+      - [tiger, tigers]
+      - [wolf, wolves]
+      - [red fox, fox]
+      - [brown bear, bear]
+      - [lynx]
+    expected_count: 6
+    expected_entities: [lion, tiger, wolf, red fox, brown bear, lynx]
+    gold_concepts:
+      - id: lion
+        aliases: [лев, львы]
+      - id: tiger
+        aliases: [тигр, тигры]
+      - id: wolf
+        aliases: [волк, волки]
+      - id: red_fox
+        aliases: [лиса, лисица, лисицы, красная лисица]
+        incorrect_aliases: [красная кошка]
+      - id: brown_bear
+        aliases: [бурый медведь, медведь, медведи]
+      - id: lynx
+        aliases: [рысь, рыси]
+    relevant_source_chunks:
+      - content_contains: This reference describes six distinct mammal species
+  - id: absent_bird_fact
+    type: specific
+    language: en
+    question: What do penguins eat?
+    insufficient_evidence: true
+    relevant_source_chunks: []
+  - id: absent_bird_fact_ua
+    type: specific
+    language: ua
+    question: Чим харчуються пінгвіни?
+    insufficient_evidence: true
+    relevant_source_chunks: []

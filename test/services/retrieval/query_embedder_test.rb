@@ -17,6 +17,18 @@ class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
     assert_equal [ [ "Що таке семантичний пошук?" ] ], @provider.calls
   end
 
+  test "passes the configured query prefix to the embedding provider" do
+    configuration = Embeddings::Configuration.new(
+      "EMBEDDING_MODEL" => "multilingual-e5-large",
+      "EMBEDDING_DIMENSIONS" => "3",
+      "EMBEDDING_QUERY_PREFIX" => "query: "
+    )
+
+    Retrieval::QueryEmbedder.new(configuration: configuration, provider: @provider).call("What are lions?")
+
+    assert_equal [ "query: " ], @provider.prefixes
+  end
+
   test "rejects empty and overlong queries without calling the provider" do
     embedder = Retrieval::QueryEmbedder.new(configuration: @configuration, provider: @provider)
 
@@ -55,16 +67,18 @@ class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
   end
 
   class FakeProvider
-    attr_reader :calls
+    attr_reader :calls, :prefixes
     attr_accessor :error
 
     def initialize(response)
       @response = response
       @calls = []
+      @prefixes = []
     end
 
-    def embed(texts)
+    def embed(texts, prefix: nil)
       @calls << texts
+      @prefixes << prefix
       raise error if error
 
       @response

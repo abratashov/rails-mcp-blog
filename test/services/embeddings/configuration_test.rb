@@ -9,6 +9,8 @@ class Embeddings::ConfigurationTest < ActiveSupport::TestCase
     assert_equal 1_536, configuration.dimensions
     assert_equal "1", configuration.configuration_version
     assert_equal 100, configuration.batch_size
+    assert_equal "", configuration.query_prefix
+    assert_equal "", configuration.passage_prefix
   end
 
   test "reads embedding settings without relying on the LLM provider" do
@@ -21,7 +23,9 @@ class Embeddings::ConfigurationTest < ActiveSupport::TestCase
       "EMBEDDING_DIMENSIONS" => "384",
       "EMBEDDING_SEND_DIMENSIONS" => "false",
       "EMBEDDING_CONFIGURATION_VERSION" => "2",
-      "EMBEDDING_BATCH_SIZE" => "16"
+      "EMBEDDING_BATCH_SIZE" => "16",
+      "EMBEDDING_QUERY_PREFIX" => "query: ",
+      "EMBEDDING_PASSAGE_PREFIX" => "passage: "
     )
 
     assert_equal "openai_compatible", configuration.provider
@@ -32,6 +36,8 @@ class Embeddings::ConfigurationTest < ActiveSupport::TestCase
     assert_not configuration.send_dimensions
     assert_equal "2", configuration.configuration_version
     assert_equal 16, configuration.batch_size
+    assert_equal "query: ", configuration.query_prefix
+    assert_equal "passage: ", configuration.passage_prefix
   end
 
   test "rejects invalid dimensions" do

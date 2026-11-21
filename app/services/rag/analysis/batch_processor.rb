@@ -14,20 +14,37 @@ module Rag
       )
 
       PROMPT_OVERHEAD_TOKENS = 500
+      CONTEXT_WINDOW_SAFETY_TOKENS = 256
       DEFAULT_BATCH_SIZE = 8
-      DEFAULT_MAX_INPUT_TOKENS = 6_000
+      DEFAULT_MAX_INPUT_TOKENS = 1_800
+      DEFAULT_CONTEXT_WINDOW = 4_096
+
+      attr_reader :max_input_tokens
 
       def initialize(
         extractor: EntityExtractor.new,
         batch_size: ENV.fetch("RAG_ANALYSIS_BATCH_SIZE", DEFAULT_BATCH_SIZE),
         max_input_tokens: ENV.fetch("RAG_ANALYSIS_MAX_INPUT_TOKENS", DEFAULT_MAX_INPUT_TOKENS),
+        max_output_tokens: ENV.fetch("RAG_ANALYSIS_EXTRACTION_MAX_TOKENS", "2_000"),
+        context_window: ENV.fetch("RAG_ANALYSIS_CONTEXT_WINDOW", DEFAULT_CONTEXT_WINDOW),
         max_retries: ENV.fetch("RAG_ANALYSIS_MAX_RETRIES", "2"),
         retry_delay: ENV.fetch("RAG_ANALYSIS_RETRY_DELAY", "0.1"),
         sleeper: ->(seconds) { sleep(seconds) }
       )
         @extractor = extractor
         @batch_size = positive_integer(batch_size, "Analysis batch size")
-        @max_input_tokens = positive_integer(max_input_tokens, "Analysis input token limit")
+        requested_input_tokens = positive_integer(max_input_tokens, "Analysis input token limit")
+        @max_input_tokens = self.class.effective_input_token_limit(
+          configured: requested_input_tokens,
+          output_tokens: max_output_tokens,
+          context_window: context_window
+        )
+        if @max_input_tokens < requested_input_tokens
+          Rails.logger.warn(
+            "RAG aggregation input token limit reduced from #{requested_input_tokens} to #{@max_input_tokens} " \
+            "to fit the configured context window and output token allowance"
+          )
+        end
         if @max_input_tokens <= PROMPT_OVERHEAD_TOKENS
           raise ArgumentError, "Analysis input token limit must exceed #{PROMPT_OVERHEAD_TOKENS}"
         end
@@ -39,9 +56,27 @@ module Rag
 
         @sleeper = sleeper
       rescue ArgumentError, TypeError => error
-        raise error if error.message.start_with?("Analysis")
+        raise error if error.message.start_with?("Analysis", "Model context window")
 
         raise ArgumentError, "Analysis configuration values must be valid numbers"
+      end
+
+      def self.effective_input_token_limit(configured:, output_tokens:, context_window:)
+        configured = Integer(configured)
+        output_tokens = Integer(output_tokens)
+        context_window = Integer(context_window)
+        unless configured.positive? && output_tokens.positive? && context_window.positive?
+          raise ArgumentError, "Analysis token limits must be positive"
+        end
+
+        available = context_window - output_tokens - CONTEXT_WINDOW_SAFETY_TOKENS
+        raise ArgumentError, "Model context window is too small for the extraction output limit" unless available.positive?
+
+        [ configured, available ].min
+      rescue ArgumentError, TypeError => error
+        raise error if error.message.start_with?("Analysis", "Model context window")
+
+        raise ArgumentError, "Analysis token limits must be valid numbers"
       end
 
       def call(question:, chunks:, progress: nil)

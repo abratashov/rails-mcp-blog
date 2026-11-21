@@ -33,6 +33,7 @@ class Retrieval::SemanticSearchTest < ActiveSupport::TestCase
     assert_equal "cosine", results.first.metric
     assert_equal "multilingual-test-model", results.first.model
     assert_equal 2, results.first.dimensions
+    assert_equal @closest_chunk.id, results.first.id
   end
 
   test "retrieves Ukrainian chunks for a Russian query" do

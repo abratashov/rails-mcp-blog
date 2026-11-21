@@ -10,6 +10,8 @@ module Embeddings
       configuration_version: "1",
       batch_size: 100,
       max_input_characters: 12_000,
+      query_prefix: "",
+      passage_prefix: "",
       open_timeout: 5,
       read_timeout: 30,
       write_timeout: 30,
@@ -31,6 +33,8 @@ module Embeddings
       @max_input_characters = integer_value(
         values, "EMBEDDING_MAX_INPUT_CHARACTERS", DEFAULTS[:max_input_characters]
       )
+      @query_prefix = values.fetch("EMBEDDING_QUERY_PREFIX", DEFAULTS[:query_prefix]).to_s
+      @passage_prefix = values.fetch("EMBEDDING_PASSAGE_PREFIX", DEFAULTS[:passage_prefix]).to_s
       @open_timeout = integer_value(values, "EMBEDDING_OPEN_TIMEOUT", DEFAULTS[:open_timeout])
       @read_timeout = integer_value(values, "EMBEDDING_READ_TIMEOUT", DEFAULTS[:read_timeout])
       @write_timeout = integer_value(values, "EMBEDDING_WRITE_TIMEOUT", DEFAULTS[:write_timeout])

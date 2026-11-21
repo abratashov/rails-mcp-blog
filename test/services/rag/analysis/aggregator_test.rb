@@ -1,7 +1,7 @@
 require "test_helper"
 
 class Rag::Analysis::AggregatorTest < ActiveSupport::TestCase
-  test "deduplicates multilingual aliases, distinguishes entity types, and calculates document statistics" do
+  test "deduplicates multilingual aliases across entity types and calculates document statistics" do
     entities = [
       entity(name: "lion", canonical_name: "lion", type: "species", chunk_id: 1, document_id: 10),
       entity(name: "лев", canonical_name: "lion", type: "species", chunk_id: 2, document_id: 10),
@@ -11,13 +11,14 @@ class Rag::Analysis::AggregatorTest < ActiveSupport::TestCase
 
     result = Rag::Analysis::Aggregator.new.call(entities: entities, facts: [], document_count: 4)
 
-    lion = result[:entities].find { |item| item[:type] == "species" }
-    assert_equal 2, result[:unique_entity_count]
+    lion = result[:entities].sole
+    assert_equal 1, result[:unique_entity_count]
     assert_equal 4, result[:total_mention_count]
-    assert_equal 3, lion[:mention_count]
+    assert_equal 4, lion[:mention_count]
     assert_equal 2, lion[:document_count]
     assert_equal 50.0, lion[:document_percentage]
-    assert_equal [ 1, 2, 3 ], lion[:source_references].map { |source| source[:source_chunk_id] }
+    assert_equal %w[species organization], lion[:types]
+    assert_equal [ 1, 2, 3, 4 ], lion[:source_references].map { |source| source[:source_chunk_id] }
   end
 
   test "keeps ambiguous identities separate and marks lower-confidence aggregates uncertain" do

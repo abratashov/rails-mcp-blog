@@ -57,6 +57,7 @@ module Retrieval
       end
 
       Result.new(
+        id: chunk.id,
         content: chunk.content,
         document_id: document.id,
         filename: document.filename,

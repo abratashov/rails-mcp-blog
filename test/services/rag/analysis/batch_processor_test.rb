@@ -47,6 +47,33 @@ class Rag::Analysis::BatchProcessorTest < ActiveSupport::TestCase
     assert_equal windows.length, result.processed_batches
   end
 
+  test "caps extraction prompt tokens to leave room for response and model context" do
+    processor = Rag::Analysis::BatchProcessor.new(
+      extractor: CapturingExtractor.new,
+      max_input_tokens: 6_000,
+      max_output_tokens: 2_000,
+      context_window: 4_096,
+      max_retries: 0
+    )
+
+    assert_equal 1_840, processor.max_input_tokens
+    assert_equal 1_800, Rag::Analysis::BatchProcessor.new(
+      extractor: CapturingExtractor.new,
+      max_input_tokens: 1_800,
+      max_output_tokens: 2_000,
+      context_window: 4_096,
+      max_retries: 0
+    ).max_input_tokens
+    assert_raises(ArgumentError) do
+      Rag::Analysis::BatchProcessor.new(
+        extractor: CapturingExtractor.new,
+        max_input_tokens: 6_000,
+        max_output_tokens: 4_000,
+        context_window: 4_096
+      )
+    end
+  end
+
   test "splits long tokens and escaped markup to remain within the configured input budget" do
     extractor = CapturingExtractor.new
     processor = Rag::Analysis::BatchProcessor.new(

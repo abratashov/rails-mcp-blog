@@ -12,7 +12,7 @@ module Retrieval
         raise ArgumentError, "Search query exceeds the #{@configuration.max_input_characters}-character embedding limit"
       end
 
-      vectors = @provider.embed([ text ])
+      vectors = @provider.embed([ text ], prefix: @configuration.query_prefix)
       unless vectors.is_a?(Array) && vectors.length == 1
         raise Embeddings::Provider::Error, "Embedding provider returned an unexpected number of query vectors"
       end

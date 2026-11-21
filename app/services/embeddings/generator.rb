@@ -30,7 +30,10 @@ module Embeddings
       end
       return if eligible.empty?
 
-      vectors = @provider.embed(eligible.map { |_, content, _| content })
+      vectors = @provider.embed(
+        eligible.map { |_, content, _| content },
+        prefix: @configuration.passage_prefix
+      )
       unless vectors.is_a?(Array) && vectors.length == eligible.length
         raise Provider::Error, "Embedding provider returned an unexpected number of vectors"
       end

@@ -29,6 +29,9 @@ module Rag
     end
 
     def call(question)
+      rule_based = rule_based_classification(question)
+      return rule_based if rule_based
+
       response = client.chat(
         parameters: {
           model: @model || llm_config.fetch(:model),
@@ -55,6 +58,20 @@ module Rag
     end
 
     private
+
+    def rule_based_classification(question)
+      text = question.to_s.downcase
+      type = if text.match?(/\b(?:compare|contrast|versus|vs\.?|difference between|differences between)\b|порівняй|порівняти|порівняйте|порівняння|відмінност|сравни|сравнить|сравните|сравнение|разниц|отличи|сопостав/u)
+        "comparative"
+      elsif text.match?(/\b(?:how many|count|total number of|number of)\b|скільки|кількість|сколько|число|порахуй|посчитай/u)
+        "aggregation"
+      elsif text.match?(/\A\s*(?:what|who|where|when|why|which|whose|whom|how)\b|\A\s*(?:що|хто|де|коли|чому|який|яка|яке|які|як|чим)\b|\A\s*(?:что|кто|где|когда|почему|какой|какая|какое|какие|как|чем)\b/u)
+        "specific"
+      end
+      return unless type
+
+      Classification.new(question_type: type, confidence: 1.0)
+    end
 
     def client
       @client ||= OpenAI::Client.new(

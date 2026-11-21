@@ -1,5 +1,7 @@
 module Rag
   class AnswerGenerator
+    TRIALS = 2
+
     def initialize(client: nil, provider: ENV.fetch("LLM_PROVIDER", "vllm").to_sym, model: nil, temperature: 0.2, max_tokens: nil)
       @client = client
       @provider = provider.to_sym
@@ -25,9 +27,17 @@ module Rag
       parameters[:max_tokens] = @max_tokens unless @max_tokens.nil?
       # Rails.logger.debug '=========================================== Request to AI:'
       # pp parameters
-      response = client.chat(parameters: parameters)
-      content = response.dig("choices", 0, "message", "content") || response.dig("output_text") || response.dig("message", "content")
-      text = extract_text(content)
+
+      responses = []
+      text = nil
+      TRIALS.times do
+        response = client.chat(parameters: parameters)
+        responses << response
+        content = response.dig("choices", 0, "message", "content") || response.dig("output_text") || response.dig("message", "content")
+        text = remove_private_reasoning(extract_text(content))
+        break if text.present?
+      end
+
       # Rails.logger.debug '=========================================== AI Response:'
       # Rails.logger.debug text
 
@@ -36,7 +46,8 @@ module Rag
       {
         text: text.to_s.strip,
         provider: @provider,
-        model: parameters[:model]
+        model: parameters[:model],
+        usage: combined_usage(responses)
       }
     end
 
@@ -69,6 +80,24 @@ module Rag
         content["text"].to_s
       else
         content.to_s
+      end
+    end
+
+    def remove_private_reasoning(text)
+      text.to_s
+        .gsub(/<think\b[^>]*>.*?<\/think\s*>/im, "")
+        .sub(/<think\b[^>]*>.*\z/im, "")
+        .strip
+    end
+
+    def combined_usage(responses)
+      usages = responses.filter_map { |response| response["usage"] || response[:usage] }
+      return if usages.empty?
+
+      usages.each_with_object({}) do |usage, totals|
+        usage.to_h.each do |key, value|
+          totals[key] = totals.fetch(key, 0) + value if value.is_a?(Numeric)
+        end
       end
     end
   end

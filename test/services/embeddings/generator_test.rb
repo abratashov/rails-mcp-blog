@@ -197,7 +197,7 @@ class Embeddings::GeneratorTest < ActiveSupport::TestCase
       @calls = []
     end
 
-    def embed(texts)
+    def embed(texts, prefix: nil)
       @calls << texts
       on_embed&.call
       if failures_remaining.positive?

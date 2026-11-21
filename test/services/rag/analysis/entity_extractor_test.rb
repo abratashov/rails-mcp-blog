@@ -15,6 +15,7 @@ class Rag::Analysis::EntityExtractorTest < ActiveSupport::TestCase
     assert_equal 12, result[:entities].sole[:source_chunk_id]
     assert_equal 0.95, result[:entities].sole[:confidence]
     assert_includes client.parameters[:messages].first[:content], "Support English, Ukrainian, and Russian"
+    assert_includes client.parameters[:messages].first[:content], "Extract identifiable entities, not category labels"
     assert_includes client.parameters[:messages].last[:content], "untrusted_chunks"
   end
 

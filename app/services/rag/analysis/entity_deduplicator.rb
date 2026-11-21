@@ -4,10 +4,11 @@ module Rag
       def call(entities)
         grouped = Array(entities).group_by { |entity| identity_key(entity) }
 
-        grouped.map do |(name, type, disambiguation, ambiguous_source), mentions|
+        grouped.map do |(name, disambiguation, ambiguous_source), mentions|
           {
             name: mentions.first[:canonical_name].presence || mentions.first[:name],
-            type: type,
+            type: mentions.first[:type],
+            types: mentions.map { |entity| entity[:type] }.uniq,
             mention_count: mentions.length,
             document_count: source_references(mentions).map { |source| source[:document_id] }.uniq.length,
             source_references: source_references(mentions),
@@ -23,10 +24,9 @@ module Rag
 
       def identity_key(entity)
         name = normalize(entity[:canonical_name].presence || entity[:name])
-        type = normalize(entity[:type])
         disambiguation = normalize(entity[:disambiguation])
         ambiguous_source = entity[:ambiguous] ? entity[:source_chunk_id].to_s : nil
-        [ name, type, disambiguation, ambiguous_source ]
+        [ name, disambiguation, ambiguous_source ]
       end
 
       def source_references(mentions)

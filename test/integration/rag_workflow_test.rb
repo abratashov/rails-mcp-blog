@@ -108,7 +108,7 @@ class RagWorkflowTest < ActionDispatch::IntegrationTest
     assert_equal "specific", conversation.messages.last.dig("metadata", "question_type")
     assert_equal "semantic_top_k", conversation.messages.last.dig("metadata", "retrieval_strategy")
     assert_requested @embedding_request, times: 2
-    assert_requested @classification_request, times: 1
+    assert_not_requested @classification_request
     assert_requested @answer_request, times: 1
   end
 end

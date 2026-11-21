@@ -120,6 +120,33 @@ class Embeddings::OpenAICompatibleProviderTest < ActiveSupport::TestCase
     assert_equal [ [ 1.0, 2.0, 3.0 ] ], provider.embed([ "text" ])
   end
 
+  test "applies an optional role prefix to every input" do
+    stub_request(:post, "https://embeddings.example/v1/embeddings")
+      .with(body: {
+        input: [ "query: first", "query: second" ],
+        model: "multilingual-test",
+        dimensions: 3
+      })
+      .to_return(
+        status: 200,
+        body: {
+          data: [
+            { index: 0, embedding: [ 1, 2, 3 ] },
+            { index: 1, embedding: [ 4, 5, 6 ] }
+          ]
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    provider = Embeddings::OpenAICompatibleProvider.new(
+      configuration: @configuration,
+      sleeper: ->(_seconds) { nil }
+    )
+
+    assert_equal [ [ 1.0, 2.0, 3.0 ], [ 4.0, 5.0, 6.0 ] ],
+      provider.embed([ "first", "second" ], prefix: "query: ")
+  end
+
   test "does not retry client errors and includes a safe provider message" do
     request = stub_request(:post, "https://embeddings.example/v1/embeddings")
       .to_return(status: 400, body: { error: { message: "Invalid model" } }.to_json)

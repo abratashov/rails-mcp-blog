@@ -1,3 +1,43 @@
 #!/usr/bin/env ruby
+
+def command_available?(command)
+  ENV.fetch("PATH", "").split(File::PATH_SEPARATOR).any? do |path|
+    File.executable?(File.join(path, command))
+  end
+end
+
+def tool_version(tool)
+  versions_file = File.join(Dir.pwd, ".tool-versions")
+
+  File.foreach(versions_file) do |line|
+    name, version = line.split
+    return version if name == tool
+  end
+
+  abort "#{tool} version not found in .tool-versions"
+end
+
+def start_postgres
+  if command_available?("asdf")
+    puts "asdf install"
+    system("asdf", "install") or abort("asdf install failed")
+
+    puts "pg_ctl start"
+    system("pg_ctl", "start") or abort("pg_ctl start failed")
+  else
+    pg_version = tool_version("postgres")
+    puts "mise: starting PostgreSQL #{pg_version}"
+
+    pgdata = File.expand_path("~/.local/share/mise/installs/postgres/#{pg_version}/data")
+
+    unless system("pg_isready", "-h", "127.0.0.1", "-p", "5432", out: File::NULL, err: File::NULL)
+      system("pg_ctl", "-D", pgdata, "-l", "#{pgdata}/server.log", "start") ||
+        abort("PostgreSQL failed to start")
+    end
+  end
+end
+
 system("./bin/rails", "dartsass:build", exception: true)
+system("mise install", exception: true)
+start_postgres
 exec "./bin/rails", "server", *ARGV
