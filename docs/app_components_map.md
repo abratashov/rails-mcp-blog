@@ -141,8 +141,8 @@ Rag::Assistant.call
           -> map to Rag::Retrieval::Result                # All matching chunks, not similarity-ranked
         -> SearchResult
           chunks                                          # All retrieved chunks
-          incomplete_documents                            # ? Documents that could not be fully processed
-          document_count                                  # ? Number of documents included
+          incomplete_documents                            # Documents that could not be fully processed
+          document_count                                  # Number of documents included
 
   -> Rag::Analysis::BatchProcessor.call
     chunks => split into token-safe windows               # chunk1, chunk2, chunk3... grouped into batches
