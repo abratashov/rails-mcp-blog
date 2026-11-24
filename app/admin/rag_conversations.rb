@@ -52,7 +52,7 @@ ActiveAdmin.register RagConversation do
                     document_id = citation["document_id"] || citation[:document_id]
                     page_start = citation["page_start"] || citation[:page_start]
                     page_end = citation["page_end"] || citation[:page_end]
-                    pages = [page_start, page_end].compact.uniq
+                    pages = [ page_start, page_end ].compact.uniq
 
                     li do
                       text_node "[#{label}] "

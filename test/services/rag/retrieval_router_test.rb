@@ -76,7 +76,6 @@ class RagRetrievalRouterTest < ActiveSupport::TestCase
       @options = options.merge(question: question)
       @result
     end
-
   end
 
   class FakeQueryStrategy < FakeStrategy

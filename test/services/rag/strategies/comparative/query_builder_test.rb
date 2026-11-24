@@ -1,8 +1,8 @@
 require "test_helper"
 
-class Rag::Comparative::QueryBuilderTest < ActiveSupport::TestCase
+class Rag::Strategies::Comparative::QueryBuilderTest < ActiveSupport::TestCase
   test "builds a separate query for each subject and ignores document-scope wording" do
-    queries = Rag::Comparative::QueryBuilder.new.call(
+    queries = Rag::Strategies::Comparative::QueryBuilder.new.call(
       "Compare lions and tigers across all uploaded documents."
     )
 
@@ -11,7 +11,7 @@ class Rag::Comparative::QueryBuilderTest < ActiveSupport::TestCase
   end
 
   test "includes explicitly requested comparison aspects in each subject query" do
-    queries = Rag::Comparative::QueryBuilder.new.call(
+    queries = Rag::Strategies::Comparative::QueryBuilder.new.call(
       "Compare lions and tigers in terms of diet and habitat."
     )
 
@@ -20,14 +20,14 @@ class Rag::Comparative::QueryBuilderTest < ActiveSupport::TestCase
   end
 
   test "builds independent queries for Ukrainian comparisons" do
-    queries = Rag::Comparative::QueryBuilder.new.call("Порівняй левів і тигрів")
+    queries = Rag::Strategies::Comparative::QueryBuilder.new.call("Порівняй левів і тигрів")
 
     assert_equal [ "левів", "тигрів" ], queries.map(&:subject)
     assert_equal [ "левів", "тигрів" ], queries.map(&:text)
   end
 
   test "builds independent queries for Ukrainian between-comparisons with aspects" do
-    queries = Rag::Comparative::QueryBuilder.new.call(
+    queries = Rag::Strategies::Comparative::QueryBuilder.new.call(
       "Які відмінності між левами та тиграми за середовищем існування?"
     )
 
@@ -40,14 +40,14 @@ class Rag::Comparative::QueryBuilderTest < ActiveSupport::TestCase
   end
 
   test "builds independent queries for Russian comparisons" do
-    queries = Rag::Comparative::QueryBuilder.new.call("Сравни львов и тигров")
+    queries = Rag::Strategies::Comparative::QueryBuilder.new.call("Сравни львов и тигров")
 
     assert_equal [ "львов", "тигров" ], queries.map(&:subject)
     assert_equal [ "львов", "тигров" ], queries.map(&:text)
   end
 
   test "builds independent queries for Russian between-comparisons" do
-    queries = Rag::Comparative::QueryBuilder.new.call(
+    queries = Rag::Strategies::Comparative::QueryBuilder.new.call(
       "В чем разница между львами и тиграми?"
     )
 
@@ -56,7 +56,7 @@ class Rag::Comparative::QueryBuilderTest < ActiveSupport::TestCase
   end
 
   test "falls back to the original question when subjects cannot be safely extracted" do
-    queries = Rag::Comparative::QueryBuilder.new.call("Analyze these documents.")
+    queries = Rag::Strategies::Comparative::QueryBuilder.new.call("Analyze these documents.")
 
     assert_equal 1, queries.length
     assert_nil queries.first.subject

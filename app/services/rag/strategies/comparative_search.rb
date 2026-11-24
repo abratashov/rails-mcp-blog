@@ -7,16 +7,16 @@ module Rag
 
       def initialize(
         fallback:,
-        query_builder: Rag::Comparative::QueryBuilder.new,
-        result_merger: Rag::Comparative::ResultMerger.new,
+        query_builder: Rag::Strategies::Comparative::QueryBuilder.new,
+        result_merger: Rag::Strategies::Comparative::ResultMerger.new,
         top_k: ENV.fetch("RAG_COMPARATIVE_TOP_K", DEFAULT_TOP_K)
       )
         @fallback = fallback
         @query_builder = query_builder
         @result_merger = result_merger
         @top_k = Integer(top_k)
-        unless @top_k.between?(1, Retrieval::SearchConfiguration::MAX_TOP_K)
-          raise ArgumentError, "Comparative Top-K must be between 1 and #{Retrieval::SearchConfiguration::MAX_TOP_K}"
+        unless @top_k.between?(1, Rag::Retrieval::SearchConfiguration::MAX_TOP_K)
+          raise ArgumentError, "Comparative Top-K must be between 1 and #{Rag::Retrieval::SearchConfiguration::MAX_TOP_K}"
         end
       end
 
@@ -34,9 +34,12 @@ module Rag
             )
           }
         end
+        # puts "===================================== ComparativeSearch: queries"
+        # pp query_results
         chunks = @result_merger.call(query_results)
         log_retrieval(queries, chunks)
-
+        # puts "===================================== ComparativeSearch: chunks"
+        # pp chunks
         SearchResult.new(chunks: chunks, queries: queries.map(&:to_h))
       end
 

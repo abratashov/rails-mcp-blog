@@ -16,25 +16,25 @@ module AI
       ollama: {
         access_token: ENV["LLM_ACCESS_TOKEN"],
         model: ENV["LLM_MODEL"],
-        url: ENV["LLM_URL"],
+        url: ENV["LLM_URL"]
       },
 
       openai: {
         access_token: ENV["LLM_ACCESS_TOKEN"],
         model: ENV["LLM_MODEL"],
-        url: ENV["LLM_URL"],
+        url: ENV["LLM_URL"]
       },
 
       openrouter: {
         access_token: ENV["LLM_ACCESS_TOKEN"],
         model: ENV["LLM_MODEL"],
-        url: ENV["LLM_URL"],
+        url: ENV["LLM_URL"]
       },
 
       vllm: {
         access_token: ENV["LLM_ACCESS_TOKEN"],
         model: ENV["LLM_MODEL"],
-        url: ENV["LLM_URL"],
+        url: ENV["LLM_URL"]
       }
     }.freeze
 

@@ -1,8 +1,8 @@
 require "test_helper"
 
-class Rag::Comparative::ResultMergerTest < ActiveSupport::TestCase
+class Rag::Strategies::Comparative::ResultMergerTest < ActiveSupport::TestCase
   Chunk = Struct.new(:document_id, :position, :filename, :content, :score, :metadata, keyword_init: true)
-  Query = Rag::Comparative::QueryBuilder::Query
+  Query = Rag::Strategies::Comparative::QueryBuilder::Query
 
   test "interleaves subject results, deduplicates by stable chunk identity, and preserves evidence metadata" do
     lion_chunk = chunk(1, 0.99, "Lion evidence")
@@ -14,7 +14,7 @@ class Rag::Comparative::ResultMergerTest < ActiveSupport::TestCase
       { query: Query.new(subject: "tigers", aspect: nil, text: "tigers"), results: [ duplicate, tiger_chunk ] }
     ]
 
-    merged = Rag::Comparative::ResultMerger.new.call(query_results)
+    merged = Rag::Strategies::Comparative::ResultMerger.new.call(query_results)
 
     assert_equal [ 1, 2, 3 ], merged.map { |result| result[:position] }
     assert_equal [ 0.99, 0.90, 0.80 ], merged.map { |result| result[:score] }

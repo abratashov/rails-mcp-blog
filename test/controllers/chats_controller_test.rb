@@ -134,7 +134,7 @@ class ChatsControllerTest < ActionDispatch::IntegrationTest
       @options = options
       Rag::Result.new(
         answer: "The report describes the main findings.",
-        citations: [{ label: 1, filename: "report.txt", document_id: nil, content: "Main findings." }],
+        citations: [ { label: 1, filename: "report.txt", document_id: nil, content: "Main findings." } ],
         retrieved_chunks: [
           {
             document_id: 17,
@@ -155,7 +155,7 @@ class ChatsControllerTest < ActionDispatch::IntegrationTest
             { subject: "lions", aspect: nil, text: "lions" },
             { subject: "tigers", aspect: nil, text: "tigers" }
           ],
-          selected_chunks: [{ document_id: 17, filename: "report.txt", position: 1, score: 0.9 }]
+          selected_chunks: [ { document_id: 17, filename: "report.txt", position: 1, score: 0.9 } ]
         },
         provider: "test",
         model: "test-model",

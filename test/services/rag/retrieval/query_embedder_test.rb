@@ -1,6 +1,6 @@
 require "test_helper"
 
-class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
+class Rag::Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
   setup do
     @configuration = Embeddings::Configuration.new(
       "EMBEDDING_MODEL" => "multilingual-test-model",
@@ -10,7 +10,7 @@ class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
   end
 
   test "embeds trimmed multilingual query text with the configured model" do
-    vector = Retrieval::QueryEmbedder.new(configuration: @configuration, provider: @provider)
+    vector = Rag::Retrieval::QueryEmbedder.new(configuration: @configuration, provider: @provider)
       .call("  Що таке семантичний пошук?  ")
 
     assert_equal [ 0.1, 0.2, 0.3 ], vector
@@ -24,13 +24,13 @@ class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
       "EMBEDDING_QUERY_PREFIX" => "query: "
     )
 
-    Retrieval::QueryEmbedder.new(configuration: configuration, provider: @provider).call("What are lions?")
+    Rag::Retrieval::QueryEmbedder.new(configuration: configuration, provider: @provider).call("What are lions?")
 
     assert_equal [ "query: " ], @provider.prefixes
   end
 
   test "rejects empty and overlong queries without calling the provider" do
-    embedder = Retrieval::QueryEmbedder.new(configuration: @configuration, provider: @provider)
+    embedder = Rag::Retrieval::QueryEmbedder.new(configuration: @configuration, provider: @provider)
 
     assert_raises(ArgumentError) { embedder.call(" \n") }
 
@@ -38,7 +38,7 @@ class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
       "EMBEDDING_DIMENSIONS" => "3",
       "EMBEDDING_MAX_INPUT_CHARACTERS" => "4"
     )
-    limited_embedder = Retrieval::QueryEmbedder.new(
+    limited_embedder = Rag::Retrieval::QueryEmbedder.new(
       configuration: limited_configuration,
       provider: @provider
     )
@@ -49,7 +49,7 @@ class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
   test "rejects malformed or wrong-dimension query vectors" do
     [ [], [ [ 1.0 ] ], [ [ 1.0, Float::INFINITY, 3.0 ] ], [ "invalid" ] ].each do |response|
       provider = FakeProvider.new(response)
-      embedder = Retrieval::QueryEmbedder.new(configuration: @configuration, provider: provider)
+      embedder = Rag::Retrieval::QueryEmbedder.new(configuration: @configuration, provider: provider)
 
       assert_raises(Embeddings::Provider::Error) { embedder.call("query") }
     end
@@ -60,7 +60,7 @@ class Retrieval::QueryEmbedderTest < ActiveSupport::TestCase
     provider.error = Embeddings::Provider::Error.new("provider unavailable")
 
     error = assert_raises(Embeddings::Provider::Error) do
-      Retrieval::QueryEmbedder.new(configuration: @configuration, provider: provider).call("query")
+      Rag::Retrieval::QueryEmbedder.new(configuration: @configuration, provider: provider).call("query")
     end
 
     assert_equal "provider unavailable", error.message

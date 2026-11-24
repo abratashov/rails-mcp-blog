@@ -1,13 +1,13 @@
 require "test_helper"
 
-class Retrieval::SearchConfigurationTest < ActiveSupport::TestCase
+class Rag::Retrieval::SearchConfigurationTest < ActiveSupport::TestCase
   test "uses sensible retrieval defaults and the current embedding identity" do
     embedding_configuration = Embeddings::Configuration.new(
       "EMBEDDING_MODEL" => "test-model",
       "EMBEDDING_DIMENSIONS" => "2",
       "EMBEDDING_CONFIGURATION_VERSION" => "test-v1"
     )
-    configuration = Retrieval::SearchConfiguration.new(embedding_configuration: embedding_configuration)
+    configuration = Rag::Retrieval::SearchConfiguration.new(embedding_configuration: embedding_configuration)
 
     assert_equal 5, configuration.top_k
     assert_nil configuration.threshold
@@ -16,13 +16,13 @@ class Retrieval::SearchConfigurationTest < ActiveSupport::TestCase
   end
 
   test "converts cosine similarity thresholds to pgvector distances" do
-    configuration = Retrieval::SearchConfiguration.new(threshold: 0.7)
+    configuration = Rag::Retrieval::SearchConfiguration.new(threshold: 0.7)
 
     assert_in_delta 0.3, configuration.neighbor_threshold
   end
 
   test "selects an exact stored embedding identity for query generation" do
-    configuration = Retrieval::SearchConfiguration.new(
+    configuration = Rag::Retrieval::SearchConfiguration.new(
       embedding_configuration: Embeddings::Configuration.new(
         "EMBEDDING_API_BASE_URL" => "http://localhost:9000/v1",
         "EMBEDDING_API_KEY" => "test-key",
@@ -64,8 +64,8 @@ class Retrieval::SearchConfigurationTest < ActiveSupport::TestCase
       { metric: "euclidean", threshold: -0.1 },
       { threshold: Float::INFINITY }
     ].each do |options|
-      assert_raises(Retrieval::SearchConfiguration::ConfigurationError) do
-        Retrieval::SearchConfiguration.new(**options)
+      assert_raises(Rag::Retrieval::SearchConfiguration::ConfigurationError) do
+        Rag::Retrieval::SearchConfiguration.new(**options)
       end
     end
   end

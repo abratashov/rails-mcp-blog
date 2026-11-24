@@ -44,7 +44,7 @@ class Rag::Strategies::ComparativeSearchTest < ActiveSupport::TestCase
     def call(question, **options)
       @calls << options.merge(question: question)
       position = question == "lions" ? 1 : 2
-      [ Retrieval::Result.new(
+      [ Rag::Retrieval::Result.new(
         document_id: 5,
         filename: "animals.txt",
         position: position,

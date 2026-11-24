@@ -1,10 +1,10 @@
 require "test_helper"
 
-class Retrieval::SemanticSearchTest < ActiveSupport::TestCase
+class Rag::Strategies::SemanticSearchTest < ActiveSupport::TestCase
   setup do
     @user = users(:one)
     @other_user = users(:two)
-    @configuration = Retrieval::SearchConfiguration.new(
+    @configuration = Rag::Retrieval::SearchConfiguration.new(
       embedding_configuration: Embeddings::Configuration.new(
         "EMBEDDING_MODEL" => "multilingual-test-model",
         "EMBEDDING_DIMENSIONS" => "2",
@@ -45,12 +45,12 @@ class Retrieval::SemanticSearchTest < ActiveSupport::TestCase
 
   test "applies similarity thresholds, document filters, and chunk metadata filters" do
     @next_chunk.update!(metadata: { "category" => "guide", "language" => "uk" })
-    configuration = Retrieval::SearchConfiguration.new(
+    configuration = Rag::Retrieval::SearchConfiguration.new(
       embedding_configuration: @configuration.embedding_configuration,
       top_k: 10,
       threshold: 0.95
     )
-    filtered_search = Retrieval::SemanticSearch.new(configuration: configuration, query_embedder: @query_embedder)
+    filtered_search = Rag::Strategies::SemanticSearch.new(configuration: configuration, query_embedder: @query_embedder)
 
     results = filtered_search.call(
       "question",
@@ -99,16 +99,16 @@ class Retrieval::SemanticSearchTest < ActiveSupport::TestCase
   end
 
   test "supports inner product and Euclidean distance thresholds" do
-    inner_product = Retrieval::SemanticSearch.new(
-      configuration: Retrieval::SearchConfiguration.new(
+    inner_product = Rag::Strategies::SemanticSearch.new(
+      configuration: Rag::Retrieval::SearchConfiguration.new(
         embedding_configuration: @configuration.embedding_configuration,
         metric: "inner_product",
         threshold: 0.9
       ),
       query_embedder: @query_embedder
     ).call("query", user: @user)
-    euclidean = Retrieval::SemanticSearch.new(
-      configuration: Retrieval::SearchConfiguration.new(
+    euclidean = Rag::Strategies::SemanticSearch.new(
+      configuration: Rag::Retrieval::SearchConfiguration.new(
         embedding_configuration: @configuration.embedding_configuration,
         metric: "euclidean",
         threshold: 0.2
@@ -130,7 +130,7 @@ class Retrieval::SemanticSearchTest < ActiveSupport::TestCase
   private
 
   def search
-    @search ||= Retrieval::SemanticSearch.new(
+    @search ||= Rag::Strategies::SemanticSearch.new(
       configuration: @configuration,
       query_embedder: @query_embedder
     )

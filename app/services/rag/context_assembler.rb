@@ -80,7 +80,7 @@ module Rag
     end
 
     def page_reference_for(result)
-      pages = [read_value(result, :page_start), read_value(result, :page_end)].compact.uniq
+      pages = [ read_value(result, :page_start), read_value(result, :page_end) ].compact.uniq
       return "" if pages.empty?
 
       page_text = pages.join("-")
@@ -134,7 +134,7 @@ module Rag
       return text if remaining_tokens <= 0
 
       tokens = text.to_s.split(/\s+/)
-      length = [remaining_tokens, tokens.length].min
+      length = [ remaining_tokens, tokens.length ].min
       tokens.first(length).join(" ")
     end
   end

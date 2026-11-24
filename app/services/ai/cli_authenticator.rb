@@ -181,7 +181,7 @@ module AI
       end
 
       # Return both objects so authenticate can wait for the callback.
-      [server, thread, callback]
+      [ server, thread, callback ]
     end
 
     # def handle_oauth_error(request, response)
@@ -287,11 +287,11 @@ module AI
       command =
         case RUBY_PLATFORM
         when /linux/
-          ["xdg-open", url]
+          [ "xdg-open", url ]
         when /darwin/
-          ["open", url]
+          [ "open", url ]
         when /mswin|mingw|cygwin/
-          ["start", "", url]
+          [ "start", "", url ]
         end
 
       return false unless command

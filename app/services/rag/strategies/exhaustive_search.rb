@@ -53,7 +53,7 @@ module Rag
       end
 
       def build_result(chunk)
-        Retrieval::Result.new(
+        Rag::Retrieval::Result.new(
           id: chunk.id,
           content: chunk.content,
           document_id: chunk.document_id,

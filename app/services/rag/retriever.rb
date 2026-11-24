@@ -1,6 +1,6 @@
 module Rag
   class Retriever
-    def initialize(configuration: Retrieval::SearchConfiguration.new, search_service: nil)
+    def initialize(configuration: Rag::Retrieval::SearchConfiguration.new, search_service: nil)
       @configuration = configuration
       @search_service = search_service
     end
@@ -13,7 +13,7 @@ module Rag
       search_service = if @search_service
         @search_service
       else
-        Retrieval::SemanticSearch.new(configuration: scoped_configuration)
+        Rag::Strategies::SemanticSearch.new(configuration: scoped_configuration)
       end
 
       search_service.call(question, user: user, document_id: document_id, metadata: metadata)
@@ -22,7 +22,7 @@ module Rag
     private
 
     def build_configuration(top_k)
-      Retrieval::SearchConfiguration.new(
+      Rag::Retrieval::SearchConfiguration.new(
         embedding_configuration: @configuration.embedding_configuration,
         embedding_identity: @configuration.embedding_identity,
         top_k: top_k,

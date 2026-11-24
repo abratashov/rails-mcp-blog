@@ -7,11 +7,11 @@ ActiveAdmin.register_page "Semantic Search" do
     @selected_identity = search_params[:embedding_identity]
 
     begin
-      raise Retrieval::SearchConfiguration::ConfigurationError, "Choose an embedding model" if @selected_identity.blank?
+      raise Rag::Retrieval::SearchConfiguration::ConfigurationError, "Choose an embedding model" if @selected_identity.blank?
 
       identity = JSON.parse(@selected_identity)
       unless identity.is_a?(Hash)
-        raise Retrieval::SearchConfiguration::ConfigurationError, "Embedding identity must be an object"
+        raise Rag::Retrieval::SearchConfiguration::ConfigurationError, "Embedding identity must be an object"
       end
 
       identity = identity.symbolize_keys
@@ -23,7 +23,7 @@ ActiveAdmin.register_page "Semantic Search" do
         .map do |provider, model, dimensions, configuration_version|
           { provider: provider, model: model, dimensions: dimensions, configuration_version: configuration_version }
         end
-      raise Retrieval::SearchConfiguration::ConfigurationError, "Choose an available embedding model" unless identities.include?(identity)
+      raise Rag::Retrieval::SearchConfiguration::ConfigurationError, "Choose an available embedding model" unless identities.include?(identity)
 
       metadata_filter = search_params[:metadata_filter].presence
       metadata_filter = JSON.parse(metadata_filter) if metadata_filter
@@ -31,14 +31,14 @@ ActiveAdmin.register_page "Semantic Search" do
         raise ArgumentError, "Chunk metadata filter must be a JSON object"
       end
 
-      configuration = Retrieval::SearchConfiguration.new(
+      configuration = Rag::Retrieval::SearchConfiguration.new(
         embedding_identity: identity,
         top_k: search_params[:top_k],
         threshold: search_params[:threshold],
         metric: search_params[:metric]
       )
 
-      @search_results = Retrieval::SemanticSearch.new(configuration: configuration).call(
+      @search_results = Rag::Strategies::SemanticSearch.new(configuration: configuration).call(
         @query,
         user: current_user,
         document_id: search_params[:document_id],
@@ -47,7 +47,7 @@ ActiveAdmin.register_page "Semantic Search" do
 
       @search_identity = identity
     rescue JSON::ParserError, ArgumentError, Embeddings::Provider::Error,
-        Embeddings::Configuration::ConfigurationError, Retrieval::SearchConfiguration::ConfigurationError => error
+        Embeddings::Configuration::ConfigurationError, Rag::Retrieval::SearchConfiguration::ConfigurationError => error
       @search_error = error.message
     end
     render :index, layout: false
@@ -109,13 +109,13 @@ ActiveAdmin.register_page "Semantic Search" do
 
             div class: "input" do
               concat form.label :top_k, "Number of results"
-              concat form.number_field :top_k, value: search_params[:top_k] || Retrieval::SearchConfiguration::DEFAULT_TOP_K, min: 1, max: Retrieval::SearchConfiguration::MAX_TOP_K
+              concat form.number_field :top_k, value: search_params[:top_k] || Rag::Retrieval::SearchConfiguration::DEFAULT_TOP_K, min: 1, max: Rag::Retrieval::SearchConfiguration::MAX_TOP_K
             end
 
             div class: "input" do
               concat form.label :metric, "Distance metric"
               concat form.select :metric, options_for_select(
-                Retrieval::SearchConfiguration::METRICS.map { |metric| [ metric.humanize, metric ] },
+                Rag::Retrieval::SearchConfiguration::METRICS.map { |metric| [ metric.humanize, metric ] },
                 search_params[:metric] || "cosine"
               )
             end

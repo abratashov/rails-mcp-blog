@@ -31,7 +31,7 @@ class RagConversation < ApplicationRecord
   def messages_for_display
     decoded_messages = parsed_messages
     return [] if decoded_messages.nil?
-    return [invalid_message_display] unless decoded_messages.is_a?(Array)
+    return [ invalid_message_display ] unless decoded_messages.is_a?(Array)
 
     decoded_messages.map do |message|
       unless message.is_a?(Hash)
@@ -45,7 +45,7 @@ class RagConversation < ApplicationRecord
       )
     end
   rescue JSON::ParserError
-    [invalid_message_display]
+    [ invalid_message_display ]
   end
 
   def metadata_hash

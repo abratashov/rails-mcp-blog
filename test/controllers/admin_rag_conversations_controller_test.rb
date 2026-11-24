@@ -41,7 +41,7 @@ class AdminRagConversationsControllerTest < ActionDispatch::IntegrationTest
     conversation = RagConversation.create!(
       user: @user,
       title: "Existing conversation",
-      messages: [{ "role" => "assistant", "content" => "**Cat (кошка)**", "metadata" => {} }]
+      messages: [ { "role" => "assistant", "content" => "**Cat (кошка)**", "metadata" => {} } ]
     )
     conversation.update_column(:messages, '[{"role":"assistant","content":"**Cat (кошка)**","metadata":{}}]')
 
@@ -96,7 +96,7 @@ class AdminRagConversationsControllerTest < ActionDispatch::IntegrationTest
   test "does not permit messages to be overwritten when updating a conversation" do
     conversation = @user.rag_conversations.create!(
       title: "Original title",
-      messages: [{ "role" => "assistant", "content" => "Original answer", "metadata" => {} }],
+      messages: [ { "role" => "assistant", "content" => "Original answer", "metadata" => {} } ],
       metadata: { "document_id" => 12 }
     )
 
